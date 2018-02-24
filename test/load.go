@@ -3,7 +3,9 @@ package test
 
 
 import (
+	"math/big"
 	"encoding/json"
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -54,6 +56,15 @@ type CoseWGExample struct {
 	} `json:"output"`
 }
 
+// https://github.com/square/go-jose/blob/789a4c4bd4c118f7564954f441b29c153ccd6a96/utils_test.go#L45
+// Build big int from base64-encoded string.
+func FromBase64Int(data string) *big.Int {
+	val, err := base64.RawURLEncoding.DecodeString(data)
+	if err != nil {
+		panic("Invalid test data")
+	}
+	return new(big.Int).SetBytes(val)
+}
 
 func LoadExample(path string) CoseWGExample {
 	var content, err = ioutil.ReadFile(path)
