@@ -5,6 +5,39 @@ import (
 	// "fmt"
 )
 
+
+type COSEHeaders struct {
+	protected map[interface{}]interface{}
+	unprotected map[interface{}]interface{}
+}
+func (h *COSEHeaders) MarshalBinary() (data []byte, err error) {
+	// TODO: encode unprotected too
+	return h.EncodeProtected(), nil
+}
+func (h *COSEHeaders) UnmarshalBinary(data []byte) (err error) {
+	panic("unsupported COSEHeaders.UnmarshalBinary")
+}
+func (h *COSEHeaders) EncodeUnprotected() (encoded map[interface{}]interface{}) {
+	return CompressHeaders(h.unprotected)
+}
+func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
+	// TODO: check for dups in maps
+	// fmt.Println(fmt.Printf("EncodeProtected\n%T %+v %v", h.protected, h.protected, h.protected == nil))
+	if h == nil {
+		panic("Cannot encode nil COSEHeaders")
+	}
+
+	if h.protected == nil || len(h.protected) < 1 {
+		return []byte("")
+	}
+
+	return CBOREncode(CompressHeaders(h.protected))
+}
+func (h *COSEHeaders) Decode() {
+	panic("unsupported COSEHeaders.Decode")
+}
+
+
 // GetCommonHeaderTag returns the CBOR tag for the map label
 //
 // using Common COSE Headers Parameters Table 2
