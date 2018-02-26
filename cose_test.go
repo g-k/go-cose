@@ -2,7 +2,10 @@
 package cose
 
 import (
+	"bytes"
+	"strings"
 	// "crypto"
+	// "math/rand"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"fmt"
@@ -11,7 +14,7 @@ import (
 	"encoding/hex"
 	"github.com/g-k/go-cose/test"
 	"github.com/stretchr/testify/assert"
-	"strings"
+	// codec "github.com/ugorji/go/codec"
 )
 
 
@@ -49,7 +52,40 @@ import (
 // }
 
 
-func TestWGSignExamples(t *testing.T) {
+func TestVerifyExample(t *testing.T) {
+	assert := assert.New(t)
+
+	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-01.json")
+
+	signerInput := example.Input.Sign.Signers[0]
+
+	privateKey := ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X: test.FromBase64Int(signerInput.Key.X),
+			Y: test.FromBase64Int(signerInput.Key.Y),
+		},
+		D: test.FromBase64Int(signerInput.Key.D),
+	}
+
+	msgBytes, hexDecodeErr := hex.DecodeString(example.Output.Cbor)
+	assert.Nil(hexDecodeErr, "Error decoding example hex")
+
+	decoded, err := CBORDecode(msgBytes)
+	assert.Nil(err, "Error decoding example CBOR")
+
+	msg, ok := decoded.(COSESignMessage)
+	assert.True(ok, "Error casting example CBOR as COSESignMessage")
+
+	fmt.Println(fmt.Printf("Verifying sig[0]: %x %d", msg.signatures[0].signature, len(msg.signatures[0].signature) / 8))
+
+	ok, err = Verify(&msg, &privateKey.PublicKey)
+	assert.Nil(err)
+	assert.True(ok)
+}
+
+
+func TestSignExample(t *testing.T) {
 	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-01.json")
 	assert := assert.New(t)
 
@@ -71,7 +107,7 @@ func TestWGSignExamples(t *testing.T) {
 	}
 
 	// TODO: func to convert example to sign msg
-	// msg.headers.protected["ctyp"] = example.Input.Sign.Protected.Ctyp
+	// ignore example.Input.Sign.Protected.Ctyp
 
 	signerInput := example.Input.Sign.Signers[0]
 	msg.signatures[0].headers.protected["alg"] = signerInput.Protected.Alg
@@ -88,26 +124,65 @@ func TestWGSignExamples(t *testing.T) {
 		D: test.FromBase64Int(signerInput.Key.D),
 	}
 
-	randReader := strings.NewReader(example.Input.RngDescription)
+	randReader := bytes.NewReader([]byte(example.Input.RngDescription))
+	// randReader := rand.New(rand.NewSource(example.Input.RngDescription))
 
 	// TODO: preprocess input to have a reasonable format
-	output, err, ToBeSigned := Sign(&msg, &privateKey, randReader)
+	_, err, ToBeSigned := Sign(&msg, &privateKey, randReader)
 	assert.Nil(err)
 
 	toSign := strings.ToUpper(hex.EncodeToString(ToBeSigned))
 	// log.Println(fmt.Printf("ToBeSigned %+v", ToBeSigned))
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex, toSign, "sig_signature wrong")
 
-	// signature from the example
-	assert.Equal("E2AEAFD40D69D19DFE6E52077C5D7FF4E408282CBEFB5D06CBF414AF2E19D982AC45AC98B8544C908B4507DE1E90B717C3D34816FE926A2B98F53AFD2FA0F30A", strings.ToUpper(hex.EncodeToString(output.signatures[0].signature)), "signature wrong")
+	// pull signature from the example
+	// exampleDecodedBytes, hexDecodeErr := hex.DecodeString(example.Output.Cbor)
+	// assert.Nil(hexDecodeErr, "Error decoding example hex")
 
-	signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
-	log.Println(fmt.Printf("signed %+v", signed))
+	// var dec *codec.Decoder = codec.NewDecoderBytes(exampleDecodedBytes, GetCOSEHandle())
+	// var exampleDecodedCBOR = make([]interface{}, 4)
+	// {
+	// 	protectedHeaders []byte
+	// 	unprotectedHeaders []byte
+	// 	payload []byte
+	// 	signatures map[string]interface{}
+	// }
+	// cborDecodeErr := dec.Decode(exampleDecodedCBOR)
+	// assert.Nil(cborDecodeErr, "Error decoding example cbor")
 
-	assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
+	// log.Println(fmt.Printf("exampledDCOR %+v", exampleDecodedCBOR))
 
-	// check for matching cbor, diag(cbor)
+	// assert.Equal(exampleDecodedCBOR, output.signatures[0].signature, "signature wrong")
+
+	// signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
+	// log.Println(fmt.Printf("signed %+v", signed))
+
+	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
+
+	// Verify our signature (round trip)
+	// ok, err := Verify(output, &privateKey.PublicKey)
+	// assert.Nil(err)
+	// assert.True(ok)
+
+	// Verify the example signature
+	// msgBytes, hexDecodeErr := hex.DecodeString(example.Output.Cbor)
+	// assert.Nil(hexDecodeErr, "Error decoding example hex")
+
+	// decoded, err := CBORDecode(msgBytes)
+	// assert.Nil(err, "Error decoding example CBOR")
+
+	// msg, ok := decoded.(COSESignMessage)
+	// assert.True(ok, "Error casting example CBOR as COSESignMessage")
+
+	// ok, err = Verify(&msg, &privateKey.PublicKey)
+	// assert.Nil(err)
+	// assert.True(ok)
+
+	// check for matching cbor
 	// assert.Equal(output, example.Output.Cbor)
+}
+
+
 
 	// for _, example := range test.LoadExamples("./test/cose-wg-examples/sign-tests") {
 	// 	assert := assert.New(t)
@@ -121,4 +196,3 @@ func TestWGSignExamples(t *testing.T) {
 	// 	// } else {
 	// 	// }
 	// }
-}
