@@ -10,8 +10,15 @@ type COSEHeaders struct {
 	protected map[interface{}]interface{}
 	unprotected map[interface{}]interface{}
 }
+func NewCOSEHeaders(
+	protected map[interface{}]interface{},
+	unprotected map[interface{}]interface{}) (h *COSEHeaders) {
+	return &COSEHeaders{
+		protected: protected,
+		unprotected: unprotected,
+	}
+}
 func (h *COSEHeaders) MarshalBinary() (data []byte, err error) {
-	// TODO: encode unprotected too
 	return h.EncodeProtected(), nil
 }
 func (h *COSEHeaders) UnmarshalBinary(data []byte) (err error) {
@@ -36,7 +43,6 @@ func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
 func (h *COSEHeaders) Decode() {
 	panic("unsupported COSEHeaders.Decode")
 }
-
 
 // GetCommonHeaderTag returns the CBOR tag for the map label
 //

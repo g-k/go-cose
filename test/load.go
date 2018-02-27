@@ -3,11 +3,13 @@ package test
 
 
 import (
-	"math/big"
-	"encoding/json"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"path/filepath"
 )
 
@@ -65,6 +67,16 @@ func FromBase64Int(data string) *big.Int {
 	}
 	return new(big.Int).SetBytes(val)
 }
+
+
+func HexToBytesOrDie(s string) []byte {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(fmt.Sprintf("Error decoding hex string: %s", err))
+	}
+	return b
+}
+
 
 func LoadExample(path string) CoseWGExample {
 	var content, err = ioutil.ReadFile(path)

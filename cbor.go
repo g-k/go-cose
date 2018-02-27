@@ -96,36 +96,26 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", v))
 	}
 
-	message := &COSESignMessage{
-		headers: &COSEHeaders{
-			protected: msgHeadersProtectedMap,
-			unprotected: msgHeadersUnprotected,
-		},
-		payload: payload,
-		signatures: []COSESignature{},
-	}
+	var m = NewCOSESignMessage(payload)
+	var message = &m
+	message.SetHeaders(NewCOSEHeaders(msgHeadersProtectedMap, msgHeadersUnprotected))
 
 	var sigs, sok = src[3].([]interface {})
 	if !sok {
 		panic(fmt.Sprintf("error decoding sigs; got %T", src[3]))
 	}
 	for _, sig := range sigs {
-		sig, sok = sig.([]interface {})
+		sigArray, sok := sig.([]interface {})
 		if !sok {
-			panic(fmt.Sprintf("error decoding sig; got %T", sig))
+			panic(fmt.Sprintf("error decoding sigArray; got %T", sigArray))
 		}
-		sig, sok = sig.([]interface {})
-		if !sok {
-			panic(fmt.Sprintf("error decoding sig; got %T", sig))
+		if len(sigArray) != 3 {
+			panic(fmt.Sprintf("can only decode COSESignature with 3 items; got %d", len(sigArray)))
 		}
 
-		// if len(sig) != 3 {
-		// 	panic(fmt.Sprintf("can only decode COSESignature with 3 items; got %d", len(sig)))
-		// }
-
-		phs, ok := src[0].([]byte)
+		phs, ok := sigArray[0].([]byte)
 		if !ok {
-			panic(fmt.Sprintf("error decoding protected header bytes; got %T", src[0]))
+			panic(fmt.Sprintf("error decoding protected header bytes; got %T", sigArray[0]))
 		}
 		sigHeadersProtected, err := CBORDecode(phs)
 		if err != nil {
@@ -137,14 +127,14 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		}
 		// fmt.Println(fmt.Printf("DECODING: %T %+v", sigHeadersProtectedMap, sigHeadersProtectedMap))
 
-		sigHeadersUnprotected, ok := src[1].(map[interface {}]interface {})
+		sigHeadersUnprotected, ok := sigArray[1].(map[interface {}]interface {})
 		if !ok {
-			panic(fmt.Sprintf("error decoding unprotected header bytes; got %T", src[1]))
+			panic(fmt.Sprintf("error decoding unprotected header bytes; got %T", sigArray[1]))
 		}
 
-		var signatureB, sbok = src[2].([]byte)
+		var signatureB, sbok = sigArray[2].([]byte)
 		if !sbok {
-			panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", src[2]))
+			panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", sigArray[2]))
 		}
 
 		sigT := COSESignature{
@@ -155,8 +145,7 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 			signature: []byte(signatureB),
 		}
 
-		fmt.Println(fmt.Printf("DECODING sig: %x %d", sigT.signature, len(sigT.signature) / 8))
-
+		// fmt.Println(fmt.Printf("DECODING sig: %x %d", sigT.signature, len(sigT.signature) / 8))
 		message.signatures = append(message.signatures, sigT)
 	}
 	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
