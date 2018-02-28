@@ -14,35 +14,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func ExpectCastToFail(title string) (shouldFail bool) {
+	return title == "sign-pass-03: Remove CBOR Tag" || title == "sign-fail-01: Wrong CBOR Tag"
+}
 
-// var VerifyFailures = map[string]bool{}
+func SignsAndVerifies(t *testing.T, example test.COSEWGExample) {
+	assert := assert.New(t)
+	privateKey := test.LoadPrivateKey(&example)
+
+	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
+	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
+
+	// ugorji/go/codec won't use the ext without a tag
+	if ExpectCastToFail(example.Title) {
+		return
+	}
+
+	msg, ok := decoded.(COSESignMessage)
+	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
+
+	ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+	if example.Fail {
+		assert.False(ok, fmt.Sprintf("%s: verifying signature did not fail", example.Title))
+		assert.NotEqual(nil, err, fmt.Sprintf("%s: no error verifying signature", example.Title))
+	} else {
+		assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
+		assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
+	}
+}
+
 func TestVerifyWGExamples(t *testing.T) {
-	examples := test.LoadExamples("./test/cose-wg-examples/sign-tests")
-
-	for _, example := range examples {
-		fmt.Println(fmt.Sprintf("Example: %s %v", example.Title, example.Fail))
-		assert := assert.New(t)
-
-		if example.Fail == false {
-			privateKey := test.LoadPrivateKey(&example)
-
-			decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
-			assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
-
-			// ugorji/go/codec won't use the ext without a tag
-			if example.Title == "sign-pass-03: Remove CBOR Tag" {
-				continue
-			}
-
-			msg, ok := decoded.(COSESignMessage)
-			assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
-
-			ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-			assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
-			assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
-		} else {
-
-		}
+	for _, example := range test.LoadExamples("./test/cose-wg-examples/sign-tests") {
+		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func (t *testing.T) {
+			SignsAndVerifies(t, example)
+		})
 	}
 }
 
