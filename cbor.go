@@ -62,6 +62,8 @@ func (x COSEExt) ConvertExt(v interface{}) interface{} {
 	}
 }
 func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
+	// fmt.Println(fmt.Sprintf("v: %x", v))
+
 	var src, vok = v.([]interface{})
 	if !vok {
 		panic(fmt.Sprintf("unsupported format expecting to decode from []interface{}; got %T", v))
@@ -69,19 +71,26 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 	if len(src) != 4 {
 		panic(fmt.Sprintf("can only decode COSESignMessage with 4 fields; got %d", len(src)))
 	}
+	// fmt.Println(fmt.Sprintf("src[0]: %+v %T", src[0], src[0]))
 
-	// TODO: decompress headers too
+	// TODO: decompress headers too?
+	var msgHeadersProtectedMap = map[interface {}]interface {} {}
+
 	phb, ok := src[0].([]byte)
+	// fmt.Println(fmt.Sprintf("phb[0]: %+v %T %d", phb, phb, len(phb)))
 	if !ok {
 		panic(fmt.Sprintf("error decoding protected header bytes; got %T", src[0]))
 	}
-	msgHeadersProtected, err := CBORDecode(phb)
-	if err != nil {
-		panic(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", msgHeadersProtected))
-	}
-	msgHeadersProtectedMap, ok := msgHeadersProtected.(map[interface {}]interface {})
-	if !ok {
-		panic(fmt.Sprintf("error casting protected to map; got %T", msgHeadersProtected))
+	// fmt.Println(fmt.Printf("phb: %T %x", phb, phb))
+	if len(phb) > 0 {
+		msgHeadersProtected, err := CBORDecode(phb)  // this causes CBOR decode EOF since src array is dropping the first map
+		if err != nil {
+			panic(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", msgHeadersProtected))
+		}
+		msgHeadersProtectedMap, ok = msgHeadersProtected.(map[interface {}]interface {})
+		if !ok {
+			panic(fmt.Sprintf("error casting protected to map; got %T", msgHeadersProtected))
+		}
 	}
 	// fmt.Println(fmt.Printf("DECODING: %T %+v", msgHeadersProtectedMap, msgHeadersProtectedMap))
 
