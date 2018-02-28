@@ -18,24 +18,30 @@ import (
 // var VerifyFailures = map[string]bool{}
 func TestVerifyWGExamples(t *testing.T) {
 	examples := test.LoadExamples("./test/cose-wg-examples/sign-tests")
-	// fmt.Println(fmt.Sprintf("examples %+v", examples))
 
 	for _, example := range examples {
-		fmt.Println(fmt.Printf("Example: %s %v %+v", example.Title, example.Fail, example.Output.Cbor))
-
-		// || example.Title == "sign-pass-02: External"
-		if !(example.Title == "ECDSA-01: ECDSA - P-256" || example.Title == "sign-pass-01: Redo protected" || example.Title == "sign-pass-03: Remove CBOR Tag") {
-			continue
-		}
-
+		fmt.Println(fmt.Sprintf("Example: %s %v", example.Title, example.Fail))
 		assert := assert.New(t)
 
-		assert.Nil(nil)
-
 		if example.Fail == false {
-			_, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
-			assert.Nil(err, fmt.Sprintf("Error decoding example CBOR from %s", example.Title))
+			privateKey := test.LoadPrivateKey(&example)
+
+			decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
+			assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
+
+			// ugorji/go/codec won't use the ext without a tag
+			if example.Title == "sign-pass-03: Remove CBOR Tag" {
+				continue
+			}
+
+			msg, ok := decoded.(COSESignMessage)
+			assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
+
+			ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+			assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
+			assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
 		} else {
+
 		}
 	}
 }
