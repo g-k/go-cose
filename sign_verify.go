@@ -197,5 +197,10 @@ func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey, external []byt
 	r := big.NewInt(0).SetBytes(signature[:keySize])
 	s := big.NewInt(0).SetBytes(signature[keySize:])
 
-	return ecdsa.Verify(publicKey, hashed, r, s), nil
+	ok = ecdsa.Verify(publicKey, hashed, r, s)
+	if ok {
+		return ok, nil
+	} else {
+		return ok, errors.New("verification failed")
+	}
 }
