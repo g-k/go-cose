@@ -6,8 +6,6 @@ import (
 	"strings"
 	// "crypto"
 	// "math/rand"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	// "fmt"
 	"testing"
 	"encoding/hex"
@@ -19,16 +17,7 @@ func TestVerifyExample(t *testing.T) {
 	assert := assert.New(t)
 	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-01.json")
 
-	signerInput := example.Input.Sign.Signers[0]
-
-	privateKey := ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: elliptic.P256(),
-			X: test.FromBase64Int(signerInput.Key.X),
-			Y: test.FromBase64Int(signerInput.Key.Y),
-		},
-		D: test.FromBase64Int(signerInput.Key.D),
-	}
+	privateKey := test.LoadPrivateKey(&example)
 
 	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, "Error decoding example CBOR")
@@ -58,14 +47,7 @@ func TestSignExample(t *testing.T) {
 	msg.AddSignature(msgSig)
 	// fmt.Println(fmt.Printf("TestSignExample %+v %+v", msgSig.headers.unprotected, msg.signatures[0].headers))
 
-	privateKey := ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: elliptic.P256(),
-			X: test.FromBase64Int(signerInput.Key.X),
-			Y: test.FromBase64Int(signerInput.Key.Y),
-		},
-		D: test.FromBase64Int(signerInput.Key.D),
-	}
+	privateKey := test.LoadPrivateKey(&example)
 
 	// randReader := bytes.NewReader([]byte(example.Input.RngDescription))
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))

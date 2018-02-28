@@ -3,6 +3,8 @@ package test
 
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -77,6 +79,24 @@ func HexToBytesOrDie(s string) []byte {
 	return b
 }
 
+
+func LoadPrivateKey(example *CoseWGExample) (key ecdsa.PrivateKey) {
+	// TODO: support non-ecdsa key types
+
+	if len(example.Input.Sign.Signers) != 1 {
+		panic("Not one signer in example.")
+	}
+	signerInput := example.Input.Sign.Signers[0]
+
+	return ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X: FromBase64Int(signerInput.Key.X),
+			Y: FromBase64Int(signerInput.Key.Y),
+		},
+		D: FromBase64Int(signerInput.Key.D),
+	}
+}
 
 func LoadExample(path string) CoseWGExample {
 	var content, err = ioutil.ReadFile(path)
