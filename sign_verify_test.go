@@ -30,9 +30,7 @@ func TestVerifyExample(t *testing.T) {
 		D: test.FromBase64Int(signerInput.Key.D),
 	}
 
-	msgBytes := test.HexToBytesOrDie(example.Output.Cbor)
-
-	decoded, err := CBORDecode(msgBytes)
+	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, "Error decoding example CBOR")
 
 	msg, ok := decoded.(COSESignMessage)
@@ -50,15 +48,13 @@ func TestSignExample(t *testing.T) {
 
 	assert := assert.New(t)
 
-	msg := NewCOSESignMessage([]byte(example.Input.Plaintext))
-
-	// TODO: extract to func to convert example to sign msg
 	signerInput := example.Input.Sign.Signers[0]
 
 	msgSig := NewCOSESignature()
 	msgSig.headers.protected["alg"] = signerInput.Protected.Alg
 	msgSig.headers.unprotected["kid"] = signerInput.Unprotected.Kid
 
+	msg := NewCOSESignMessage([]byte(example.Input.Plaintext))
 	msg.AddSignature(msgSig)
 	// fmt.Println(fmt.Printf("TestSignExample %+v %+v", msgSig.headers.unprotected, msg.signatures[0].headers))
 
@@ -71,8 +67,8 @@ func TestSignExample(t *testing.T) {
 		D: test.FromBase64Int(signerInput.Key.D),
 	}
 
-	randReader := bytes.NewReader([]byte(example.Input.RngDescription))
-	// randReader := rand.New(rand.NewSource(example.Input.RngDescription))
+	// randReader := bytes.NewReader([]byte(example.Input.RngDescription))
+	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
 
 	output, err, ToBeSigned := Sign(&msg, &privateKey, randReader)
 	assert.Nil(err)
@@ -81,7 +77,7 @@ func TestSignExample(t *testing.T) {
 	// log.Println(fmt.Printf("ToBeSigned %+v", ToBeSigned))
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex, toSign, "sig_signature wrong")
 
-	// check cbor matches
+	// check cbor matches (will not match per message keys k match which depend on our RNGs)
 	// signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
@@ -90,16 +86,3 @@ func TestSignExample(t *testing.T) {
 	assert.Nil(err)
 	assert.True(ok)
 }
-
-	// for _, example := range test.LoadExamples("./test/cose-wg-examples/sign-tests") {
-	// 	assert := assert.New(t)
-
-	// 	if (example.Title != "sign-pass-01: Redo protected") {
-	// 		continue
-	// 	}
-
-	// 	// if (example.Fail) {
-	// 	// 	// check for error
-	// 	// } else {
-	// 	// }
-	// }
