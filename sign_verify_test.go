@@ -51,23 +51,6 @@ func TestVerifyWGExamples(t *testing.T) {
 	}
 }
 
-func TestVerifyExtExample(t *testing.T) {
-	assert := assert.New(t)
-	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-02.json")
-
-	privateKey := test.LoadPrivateKey(&example)
-
-	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
-	assert.Nil(err, "Error decoding example CBOR")
-
-	msg, ok := decoded.(COSESignMessage)
-	assert.True(ok, "Error casting example CBOR as COSESignMessage")
-
-	ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-	assert.Nil(err)
-	assert.True(ok)
-}
-
 func TestSignExtExampleIntermediate(t *testing.T) {
 	assert := assert.New(t)
 	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-02.json")
@@ -89,25 +72,6 @@ func TestSignExtExampleIntermediate(t *testing.T) {
 	// log.Println(fmt.Printf("ToBeSigned %+v", ToBeSigned))
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex, toSign, "sig_signature wrong")
 }
-
-
-func TestVerifyExample(t *testing.T) {
-	assert := assert.New(t)
-	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-01.json")
-
-	privateKey := test.LoadPrivateKey(&example)
-
-	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
-	assert.Nil(err, "Error decoding example CBOR")
-
-	msg, ok := decoded.(COSESignMessage)
-	assert.True(ok, "Error casting example CBOR as COSESignMessage")
-
-	ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-	assert.Nil(err)
-	assert.True(ok)
-}
-
 
 func TestSignExample(t *testing.T) {
 	example := test.LoadExample("./test/cose-wg-examples/sign-tests/sign-pass-01.json")
