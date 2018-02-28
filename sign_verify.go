@@ -2,6 +2,7 @@
 package cose
 
 import (
+	"errors"
 	"bytes"
 	"math/big"
 	"crypto"
@@ -75,11 +76,11 @@ func hashSigStructure(
 	message *COSESignMessage,
 	key *ecdsa.PublicKey,
 	external []byte,
-) (hashed []byte, ToBeSigned []byte) {
+) (hashed []byte, ToBeSigned []byte, err error) {
 	if message.signatures == nil {
-		panic("nil sigs")
+		return nil, nil, errors.New("nil sigs")
 	} else if len(message.signatures) < 1 {
-		panic("no sig to hash")
+		return nil, nil, errors.New("no sig to hash")
 	}
 	// fmt.Println(fmt.Printf("alg: %+v", message.signatures[0].headers.protected))
 
@@ -87,7 +88,7 @@ func hashSigStructure(
 	// 	fmt.Println(fmt.Printf("Key: %s %T Value: %s %T", key, key, value, value))
 	// }
 	if !(message.signatures[0].headers.protected["alg"] == "ES256" || message.signatures[0].headers.protected[uint64(1)] == int64(-7)) {
-		panic("Not implemented.")
+		return nil, nil, errors.New("alg not implemented.")
 	}
 
 	// 1.  Create a Sig_structure and populate it with the appropriate fields.
@@ -123,7 +124,7 @@ func hashSigStructure(
 	_, _ = hasher.Write(ToBeSigned)
 	hashed = hasher.Sum(nil)
 
-	return hashed, ToBeSigned
+	return hashed, ToBeSigned, nil
 }
 
 
@@ -134,7 +135,10 @@ func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader,
 	// Signing and Verification Process
 	// https://tools.ietf.org/html/rfc8152#section-4.4
 	//
-	hashed, ToBeSigned := hashSigStructure(message, &key.PublicKey, external)
+	hashed, ToBeSigned, err := hashSigStructure(message, &key.PublicKey, external)
+	if err != nil {
+		return nil, err, nil
+	}
 
 	// 3.  Call the signature creation algorithm passing in K (the key to
 	//     sign with), alg (the algorithm to sign with), and ToBeSigned (the
@@ -143,7 +147,7 @@ func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader,
 	// https://tools.ietf.org/html/rfc8152#section-8.1
 	r, s, err := ecdsa.Sign(randReader, key, hashed)
 	if err != nil {
-		panic(fmt.Errorf("ecdsa.Sign error %s", err))
+		return nil, errors.New(fmt.Sprintf("ecdsa.Sign error %s", err)), nil
 	}
 	// assert r and s are the same length will be the same length
 	// as the length of the key used for the signature process
@@ -176,7 +180,10 @@ func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader,
 }
 
 func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey, external []byte) (ok bool, err error) {
-	hashed, _ := hashSigStructure(message, publicKey, external)
+	hashed, _, err := hashSigStructure(message, publicKey, external)
+	if err != nil {
+		return false, err
+	}
 
 	// ES256 / sha256
 	keySize := 32
@@ -184,7 +191,7 @@ func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey, external []byt
 	// r and s from sig
 	signature := message.signatures[0].signature
 	if len(signature) != 2 * keySize {
-		panic(fmt.Sprintf("invalid signature length: %d", len(signature)))
+		return false, errors.New(fmt.Sprintf("invalid signature length: %d", len(signature)))
 	}
 
 	r := big.NewInt(0).SetBytes(signature[:keySize])
