@@ -25,7 +25,7 @@ func SignsAndVerifies(t *testing.T, example test.COSEWGExample) {
 	decoded, err := CBORDecode(test.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
-	// ugorji/go/codec won't use the ext without a tag
+	// ugorji/go/codec won't use the Ext to decode without the right CBOR tag
 	if ExpectCastToFail(example.Title) {
 		return
 	}
