@@ -71,7 +71,11 @@ func (m *COSESignMessage) SetHeaders(h *COSEHeaders) {
 }
 
 
-func hashSigStructure(message *COSESignMessage, key *ecdsa.PublicKey) (hashed []byte, ToBeSigned []byte) {
+func hashSigStructure(
+	message *COSESignMessage,
+	key *ecdsa.PublicKey,
+	external []byte,
+) (hashed []byte, ToBeSigned []byte) {
 	if message.signatures == nil {
 		panic("nil sigs")
 	} else if len(message.signatures) < 1 {
@@ -98,7 +102,7 @@ func hashSigStructure(message *COSESignMessage, key *ecdsa.PublicKey) (hashed []
 		ContextSignature,
 		message.headers.EncodeProtected(),
 		message.signatures[0].headers.EncodeProtected(),
-		[]byte(""),  // TODO: pass as arg
+		external,
 		message.payload,
 	}
 
@@ -126,11 +130,11 @@ func hashSigStructure(message *COSESignMessage, key *ecdsa.PublicKey) (hashed []
 // TODO: rewrite as Signer(kid, alg key config).Sign(payload, ext_data)
 //
 // https://tools.ietf.org/html/rfc8152#section-4
-func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader) (result *COSESignMessage, err error, ToBeSigned []byte) {
+func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader, external []byte) (result *COSESignMessage, err error, ToBeSigned []byte) {
 	// Signing and Verification Process
 	// https://tools.ietf.org/html/rfc8152#section-4.4
 	//
-	hashed, ToBeSigned := hashSigStructure(message, &key.PublicKey)
+	hashed, ToBeSigned := hashSigStructure(message, &key.PublicKey, external)
 
 	// 3.  Call the signature creation algorithm passing in K (the key to
 	//     sign with), alg (the algorithm to sign with), and ToBeSigned (the
@@ -171,8 +175,8 @@ func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader)
 	return message, nil, ToBeSigned
 }
 
-func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey) (ok bool, err error) {
-	hashed, _ := hashSigStructure(message, publicKey)
+func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey, external []byte) (ok bool, err error) {
+	hashed, _ := hashSigStructure(message, publicKey, external)
 
 	// ES256 / sha256
 	keySize := 32

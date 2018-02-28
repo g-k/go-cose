@@ -42,6 +42,7 @@ type CoseWGExample struct {
 				Protected struct {
 					Alg string `json:"alg"`
 				} `json:"protected"`
+				External string `json:"external"`
 			} `json:"signers"`
 		} `json:"sign"`
 		Failures struct {
