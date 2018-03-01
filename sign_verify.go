@@ -46,6 +46,34 @@ func NewCOSESignature() (s *COSESignature) {
 		signature: nil,
 	}
 }
+func (m *COSESignature) SetHeaders(h *COSEHeaders) {
+	m.headers = h
+}
+func (m *COSESignature) Decode(o interface {}) {
+	array, ok := o.([]interface {})
+	if !ok {
+		panic(fmt.Sprintf("error decoding sigArray; got %T", array))
+	}
+	if len(array) != 3 {
+		panic(fmt.Sprintf("can only decode COSESignature with 3 items; got %d", len(array)))
+	}
+
+	err := m.headers.DecodeProtected(array[0])
+	if err != nil {
+		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
+	}
+	err = m.headers.DecodeUnprotected(array[1])
+	if err != nil {
+		panic(fmt.Sprintf("error decoding unprotected header map; got %s", err))
+	}
+
+	signature, ok := array[2].([]byte)
+	if !ok {
+		panic(fmt.Sprintf("unable to decode COSE signature expecting decode from interface{}; got %T", array[2]))
+	}
+	m.signature = signature
+}
+
 
 // COSESignMessage https://tools.ietf.org/html/rfc8152#section-4.1
 type COSESignMessage struct {

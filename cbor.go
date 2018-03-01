@@ -90,51 +90,12 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("error decoding sigs; got %T", src[3]))
 	}
 	for _, sig := range sigs {
-		sigArray, sok := sig.([]interface {})
-		if !sok {
-			panic(fmt.Sprintf("error decoding sigArray; got %T", sigArray))
-		}
-		if len(sigArray) != 3 {
-			panic(fmt.Sprintf("can only decode COSESignature with 3 items; got %d", len(sigArray)))
-		}
-
-		phs, ok := sigArray[0].([]byte)
-		if !ok {
-			panic(fmt.Sprintf("error decoding protected header bytes; got %T", sigArray[0]))
-		}
-		sigHeadersProtected, err := CBORDecode(phs)
-		if err != nil {
-			panic(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", sigHeadersProtected))
-		}
-		sigHeadersProtectedMap, ok := sigHeadersProtected.(map[interface {}]interface {})
-		if !ok {
-			panic(fmt.Sprintf("error casting protected to map; got %T", sigHeadersProtected))
-		}
-		// fmt.Println(fmt.Printf("DECODING: %T %+v", sigHeadersProtectedMap, sigHeadersProtectedMap))
-
-		sigHeadersUnprotected, ok := sigArray[1].(map[interface {}]interface {})
-		if !ok {
-			panic(fmt.Sprintf("error decoding unprotected header bytes; got %T", sigArray[1]))
-		}
-
-		var signatureB, sbok = sigArray[2].([]byte)
-		if !sbok {
-			panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", sigArray[2]))
-		}
-
 		sigT := NewCOSESignature()
-		sigT.SetHeaders(NewCOSEHeaders(sigHeadersProtectedMap, sigHeadersUnprotected))
-		sigT.signature = []byte(signatureB)
+		sigT.Decode(sig)
 
-		// fmt.Println(fmt.Printf("DECODING sig: %x %d", sigT.signature, len(sigT.signature) / 8))
 		message.signatures = append(message.signatures, *sigT)
 	}
 	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
-
-	if (len(message.signatures) != 1) {
-		panic(fmt.Errorf("wtf? too few or many sigs %d", len(message.signatures)))
-	}
-	// fmt.Println(fmt.Printf("DECODED COSESignMessage: %T %+v", message, message))
 
 	destMessage, ok := dest.(*COSESignMessage)
 	if !ok {
