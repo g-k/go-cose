@@ -88,14 +88,16 @@ var CBOREncodeTestCases = []struct {
 }
 func TestCBOREncode(t *testing.T) {
 	for _, testCase := range CBOREncodeTestCases {
-		assert := assert.New(t)
+		t.Run(testCase.name, func (t *testing.T) {
+			assert := assert.New(t)
 
-		output, err := CBOREncode(testCase.input)
-		assert.Nil(err, fmt.Sprintf("%s failed", testCase.name))
-		assert.Equal(
-			testCase.output,
-			output,
-			fmt.Sprintf("%s failed", testCase.name))
+			output, err := CBOREncode(testCase.input)
+			assert.Nil(err, fmt.Sprintf("%s failed", testCase.name))
+			assert.Equal(
+				testCase.output,
+				output,
+				fmt.Sprintf("%s failed", testCase.name))
+		})
 	}
 }
 
