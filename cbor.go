@@ -105,6 +105,8 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 }
 
 
+// GetCOSEHandle returns a codec.CborHandle with Extensions registered
+// for the COSE SignMessage CBOR Tag (98)
 func GetCOSEHandle() (h *codec.CborHandle) {
 	h = new(codec.CborHandle)
 	h.IndefiniteLength = false  // no streaming
@@ -112,7 +114,7 @@ func GetCOSEHandle() (h *codec.CborHandle) {
 
 	var cExt COSEExt
 
-	// COSE Message CBOR tags
+	// COSE Message CBOR tags from
 	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
 
 	// h.SetInterfaceExt(reflect.TypeOf(COSEEncrypt0Message{}), 16, cExt)
