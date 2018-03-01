@@ -92,8 +92,7 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 	for _, sig := range sigs {
 		sigT := NewCOSESignature()
 		sigT.Decode(sig)
-
-		message.signatures = append(message.signatures, *sigT)
+		message.AddSignature(sigT)
 	}
 	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
 
