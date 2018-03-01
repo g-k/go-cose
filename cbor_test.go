@@ -21,14 +21,14 @@ var CBOREncodeTestCases = []struct {
 		[]byte(""),
 		[]byte("\x40"), // bytes(0) / ""
 	},
-	// {
-	// 	"empty header",
-	// 	COSEHeaders{
-	// 		protected: map[interface{}]interface{}{},
-	// 		unprotected: map[interface{}]interface{}{},
-	// 	},
-	// 	[]byte("\x40\x40"),
-	// },
+	{
+		"empty header",
+		COSEHeaders{
+			protected: map[interface{}]interface{}{},
+			unprotected: map[interface{}]interface{}{},
+		},
+		[]byte("\x40"),
+	},
 	{
 		"alg in protected header",
 		COSEHeaders{
