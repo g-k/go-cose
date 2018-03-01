@@ -9,7 +9,6 @@ import (
 	// "crypto"
 	// "crypto/ecdsa"
 	"fmt"
-	"log"
 	"reflect"
 	codec "github.com/ugorji/go/codec"
 )
@@ -79,7 +78,7 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 
 	var payload, pok = src[2].([]byte)
 	if !pok {
-		panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", v))
+		panic(fmt.Sprintf("error decoding msg payload decode from interface{} to []byte; got %T", src[2]))
 	}
 
 	var m = NewCOSESignMessage(payload)

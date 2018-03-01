@@ -20,6 +20,7 @@ func NewCOSEHeaders(
 	}
 }
 func (h *COSEHeaders) MarshalBinary() (data []byte, err error) {
+	// TODO: include unprotected
 	return h.EncodeProtected(), nil
 }
 func (h *COSEHeaders) UnmarshalBinary(data []byte) (err error) {

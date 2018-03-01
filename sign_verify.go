@@ -134,11 +134,9 @@ func hashSigStructure(
 
 // TODO: rewrite as Signer(kid, alg key config).Sign(payload, ext_data)
 //
-// https://tools.ietf.org/html/rfc8152#section-4
+// Signing and Verification Process
+// https://tools.ietf.org/html/rfc8152#section-4.4
 func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader, external []byte) (result *COSESignMessage, err error, ToBeSigned []byte) {
-	// Signing and Verification Process
-	// https://tools.ietf.org/html/rfc8152#section-4.4
-	//
 	hashed, ToBeSigned, err := hashSigStructure(message, &key.PublicKey, external)
 	if err != nil {
 		return nil, err, nil
