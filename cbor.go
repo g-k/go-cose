@@ -122,16 +122,12 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 			panic(fmt.Sprintf("!!!? unsupported format expecting to decode from []interface{}; got %T", sigArray[2]))
 		}
 
-		sigT := COSESignature{
-			headers: &COSEHeaders{
-				protected: sigHeadersProtectedMap,
-				unprotected: sigHeadersUnprotected,
-			},
-			signature: []byte(signatureB),
-		}
+		sigT := NewCOSESignature()
+		sigT.SetHeaders(NewCOSEHeaders(sigHeadersProtectedMap, sigHeadersUnprotected))
+		sigT.signature = []byte(signatureB)
 
 		// fmt.Println(fmt.Printf("DECODING sig: %x %d", sigT.signature, len(sigT.signature) / 8))
-		message.signatures = append(message.signatures, sigT)
+		message.signatures = append(message.signatures, *sigT)
 	}
 	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
 
