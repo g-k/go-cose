@@ -216,13 +216,16 @@ func TestCBORDecode(t *testing.T) {
 		// 	continue
 		// }
 
-		assert := assert.New(t)
+		t.Run(testCase.name, func (t *testing.T) {
+			assert := assert.New(t)
 
-		output, err := CBORDecode(testCase.input)
-		assert.Nil(err)
-		assert.Equal(
-			testCase.output,
-			output,
-			fmt.Sprintf("%s failed", testCase.name))
+			output, err := CBORDecode(testCase.input)
+			assert.Nil(err)
+
+			assert.Equal(
+				testCase.output,
+				output,
+				fmt.Sprintf("%s failed", testCase.name))
+		})
 	}
 }
