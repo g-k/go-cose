@@ -39,7 +39,7 @@ var CBOREncodeTestCases = []struct {
 		// decoding h'A10126' gives:
 		//     A1    # map(1)
 		//       01 # unsigned(1)
-		//       26 # negative(6)
+		//       26 # negative(7)
 		[]byte("\x43\xA1\x01\x26"),
 	},
 	// {
