@@ -109,7 +109,10 @@ func hashSigStructure(
 
 	// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 	//     byte string, using the encoding described in Section 14.
-	ToBeSigned = CBOREncode(sig_structure)
+	ToBeSigned, err = CBOREncode(sig_structure)
+	if err != nil {
+		return nil, nil, errors.New(fmt.Sprintf("CBOREncode error encoding sig_structure: %s", err))
+	}
 
 	var hash crypto.Hash
 

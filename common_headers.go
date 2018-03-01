@@ -2,6 +2,7 @@ package cose
 
 import (
 	"errors"
+	"log"
 	// "fmt"
 )
 
@@ -38,7 +39,11 @@ func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
 		return []byte("")
 	}
 
-	return CBOREncode(CompressHeaders(h.protected))
+	encoded, err := CBOREncode(CompressHeaders(h.protected))
+	if err != nil {
+		log.Fatalf("CBOREncode error of protected headers %s", err)
+	}
+	return encoded
 }
 func (h *COSEHeaders) Decode() {
 	panic("unsupported COSEHeaders.Decode")

@@ -15,25 +15,16 @@ import (
 )
 
 
-func CBOREncode(o interface{}) (b []byte) {
+func CBOREncode(o interface{}) (b []byte, err error) {
 	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
 
-	err := enc.Encode(o)
-	if err != nil {
-		log.Fatalf("Encoding error %s", err)
-	}
-	return b
+	err = enc.Encode(o)
+	return b, err
 }
 func CBORDecode(b []byte) (o interface{}, err error) {
-	// fmt.Println(fmt.Printf("CBORDecode decoding %+x", b))
 	var dec *codec.Decoder = codec.NewDecoderBytes(b, GetCOSEHandle())
 
 	err = dec.Decode(&o)
-	if err != nil {
-		log.Fatalf("CBORDecode decoding error %s", err)
-	}
-
-	// fmt.Println(fmt.Printf("CBORDecode decoded %+v", o))
 	return o, err
 }
 
