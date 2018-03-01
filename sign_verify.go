@@ -77,12 +77,13 @@ func hashSigStructure(
 	key *ecdsa.PublicKey,
 	external []byte,
 ) (hashed []byte, ToBeSigned []byte, err error) {
-	if message.signatures == nil {
+	if message == nil {
+		return nil, nil, errors.New("nil cose sign message")
+	} else if message.signatures == nil {
 		return nil, nil, errors.New("nil sigs")
 	} else if len(message.signatures) < 1 {
 		return nil, nil, errors.New("no sig to hash")
 	}
-	// fmt.Println(fmt.Printf("alg: %+v", message.signatures[0].headers.protected))
 
 	// for key, value := range message.signatures[0].headers.protected {
 	// 	fmt.Println(fmt.Printf("Key: %s %T Value: %s %T", key, key, value, value))
