@@ -2,8 +2,8 @@ package cose
 
 import (
 	"errors"
+	"fmt"
 	"log"
-	// "fmt"
 )
 
 
@@ -45,9 +45,36 @@ func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
 	}
 	return encoded
 }
-func (h *COSEHeaders) Decode() {
-	panic("unsupported COSEHeaders.Decode")
+func (h *COSEHeaders) DecodeProtected(o interface {}) (err error) {
+	b, ok := o.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprintf("error casting protected header bytes; got %T", o))
+	}
+	if len(b) <= 0 {
+		return nil
+	}
+
+	protected, err := CBORDecode(b)
+	if err != nil {
+		return errors.New(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", protected))
+	}
+	protectedMap, ok := protected.(map[interface {}]interface {})
+	if !ok {
+		return errors.New(fmt.Sprintf("error casting protected to map; got %T", protected))
+	}
+
+	h.protected = protectedMap
+	return nil
 }
+func (h *COSEHeaders) DecodeUnprotected(o interface {}) (err error) {
+	msgHeadersUnprotected, ok := o.(map[interface {}]interface {})
+	if !ok {
+		return errors.New(fmt.Sprintf("error decoding unprotected header as map[interface {}]interface {}; got %T", o))
+	}
+	h.unprotected = msgHeadersUnprotected
+	return nil
+}
+
 
 // GetCommonHeaderTag returns the CBOR tag for the map label
 //

@@ -52,6 +52,8 @@ func (x COSEExt) ConvertExt(v interface{}) interface{} {
 		sigs,
 	}
 }
+
+// TODO: decompress headers too?
 func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 	// fmt.Println(fmt.Sprintf("v: %x", v))
 
@@ -64,30 +66,14 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 	}
 	// fmt.Println(fmt.Sprintf("src[0]: %+v %T", src[0], src[0]))
 
-	// TODO: decompress headers too?
-	var msgHeadersProtectedMap = map[interface {}]interface {} {}
-
-	phb, ok := src[0].([]byte)
-	// fmt.Println(fmt.Sprintf("phb[0]: %+v %T %d", phb, phb, len(phb)))
-	if !ok {
-		panic(fmt.Sprintf("error decoding protected header bytes; got %T", src[0]))
+	var msgHeaders = NewCOSEHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
+	err := msgHeaders.DecodeProtected(src[0])
+	if err != nil {
+		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
 	}
-	// fmt.Println(fmt.Printf("phb: %T %x", phb, phb))
-	if len(phb) > 0 {
-		msgHeadersProtected, err := CBORDecode(phb)  // this causes CBOR decode EOF since src array is dropping the first map
-		if err != nil {
-			panic(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", msgHeadersProtected))
-		}
-		msgHeadersProtectedMap, ok = msgHeadersProtected.(map[interface {}]interface {})
-		if !ok {
-			panic(fmt.Sprintf("error casting protected to map; got %T", msgHeadersProtected))
-		}
-	}
-	// fmt.Println(fmt.Printf("DECODING: %T %+v", msgHeadersProtectedMap, msgHeadersProtectedMap))
-
-	msgHeadersUnprotected, ok := src[1].(map[interface {}]interface {})
-	if !ok {
-		panic(fmt.Sprintf("error decoding unprotected header bytes; got %T", src[1]))
+	err = msgHeaders.DecodeUnprotected(src[1])
+	if err != nil {
+		panic(fmt.Sprintf("error decoding unprotected header map; got %s", err))
 	}
 	// fmt.Println(fmt.Printf("DECODING: %T %+v", msgHeadersUnprotected, msgHeadersUnprotected))
 
@@ -98,7 +84,7 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 
 	var m = NewCOSESignMessage(payload)
 	var message = &m
-	message.SetHeaders(NewCOSEHeaders(msgHeadersProtectedMap, msgHeadersUnprotected))
+	message.SetHeaders(msgHeaders)
 
 	var sigs, sok = src[3].([]interface {})
 	if !sok {
