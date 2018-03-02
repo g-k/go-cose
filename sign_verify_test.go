@@ -37,37 +37,31 @@ func SignsAndVerifies(t *testing.T, example test.COSEWGExample) {
 	ok, err = Verify(&msg, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
 	if example.Fail {
 		assert.False(ok, fmt.Sprintf("%s: verifying signature did not fail", example.Title))
-		assert.NotEqual(nil, err, fmt.Sprintf("%s: no error verifying signature", example.Title))
-	} else {
-		assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
-		assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
+		assert.NotNil(err, fmt.Sprintf("%s: nil error from signature verification failure", example.Title))
+		return
 	}
+	assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
+	assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
 
 	// Test Sign
+	// NB: for the fail test cases, signing should not necessarily
+	// fail and the intermediates are wrong
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
 	output, err, ToBeSigned := Sign(&msg, &privateKey, randReader, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-	if example.Fail {
-		// check intermediate
-		// assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
-		// 	strings.ToUpper(hex.EncodeToString(ToBeSigned)),
-		// 	fmt.Sprintf("%s: signing wrong Hex Intermediate", example.Title))
 
-		// assert.NotNil(err, fmt.Sprintf("%s: signing did not fail", example.Title))
-	} else {
-		// check intermediate
-		assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
-			strings.ToUpper(hex.EncodeToString(ToBeSigned)),
-			fmt.Sprintf("%s: signing wrong Hex Intermediate", example.Title))
+	// check intermediate
+	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
+		strings.ToUpper(hex.EncodeToString(ToBeSigned)),
+		fmt.Sprintf("%s: signing wrong Hex Intermediate", example.Title))
 
-		// check cbor matches (will not match per message keys k match which depend on our RNGs)
-		// signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
-		// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
+	// check cbor matches (will not match per message keys k match which depend on our RNGs)
+	// signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
+	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
-		// Verify our signature (round trip)
-		ok, err = Verify(output, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-		assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed", example.Title))
-		assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", example.Title))
-	}
+	// Verify our signature (round trip)
+	ok, err = Verify(output, &privateKey.PublicKey, test.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed", example.Title))
+	assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", example.Title))
 }
 
 func TestVerifyWGExamples(t *testing.T) {
