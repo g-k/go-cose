@@ -165,7 +165,7 @@ func hashSigStructure(
 func Sign(message *COSESignMessage, key *ecdsa.PrivateKey, randReader io.Reader, external []byte) (result *COSESignMessage, err error, ToBeSigned []byte) {
 	hashed, ToBeSigned, err := hashSigStructure(message, &key.PublicKey, external)
 	if err != nil {
-		return nil, err, nil
+		return nil, err, ToBeSigned
 	}
 
 	// 3.  Call the signature creation algorithm passing in K (the key to
