@@ -1,5 +1,5 @@
 
-package test
+package util
 
 
 import (
@@ -85,7 +85,7 @@ func LoadPrivateKey(example *COSEWGExample) (key ecdsa.PrivateKey) {
 	// TODO: support non-ecdsa key types
 
 	if len(example.Input.Sign.Signers) != 1 {
-		panic("Not one signer in example.")
+		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
 	}
 	signerInput := example.Input.Sign.Signers[0]
 
@@ -125,6 +125,8 @@ func LoadExamples(path string) []COSEWGExample {
 		if file.IsDir() {
 			continue
 		}
+
+		fmt.Println(fmt.Sprintf("Loading: %s", file.Name()))
 
 		var content, err = ioutil.ReadFile(filepath.Join(path, file.Name()))
 		if err != nil {
