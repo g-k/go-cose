@@ -111,6 +111,10 @@ func hashSigStructure(
 		return nil, nil, errors.New("nil sigs")
 	} else if len(message.signatures) < 1 {
 		return nil, nil, errors.New("no sig to hash")
+	} else if message.signatures[0].headers == nil {
+		return nil, nil, errors.New("nil sig headers")
+	} else if message.signatures[0].headers.protected == nil {
+		return nil, nil, errors.New("nil sig headers.protected")
 	}
 
 	// for key, value := range message.signatures[0].headers.protected {
