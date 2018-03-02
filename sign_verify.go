@@ -117,9 +117,7 @@ func hashSigStructure(
 		return nil, nil, errors.New("nil sig headers.protected")
 	}
 
-	// for key, value := range message.signatures[0].headers.protected {
-	// 	fmt.Println(fmt.Printf("Key: %s %T Value: %s %T", key, key, value, value))
-	// }
+	// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 	if !(message.signatures[0].headers.protected["alg"] == "ES256" || message.signatures[0].headers.protected[uint64(1)] == int64(-7)) {
 		return nil, nil, errors.New("alg not implemented.")
 	}
@@ -153,13 +151,9 @@ func hashSigStructure(
 	// expectedBitSize := 256
 	hash = crypto.SHA256
 
-	// TODO: if provided privateKey verify alg, bitsize, and supported key_ops in protected
 	hasher := hash.New()
-
-	// According to documentation, Write() on hash never fails
-	_, _ = hasher.Write(ToBeSigned)
+	_, _ = hasher.Write(ToBeSigned)  // Write() on hash never fails
 	hashed = hasher.Sum(nil)
-
 	return hashed, ToBeSigned, nil
 }
 
