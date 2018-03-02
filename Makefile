@@ -15,8 +15,20 @@ coverage:
 what-todo:
 	git grep -i TODO
 
-iana-csvs:
+
+util/data:
 	mkdir -p util/data
+
+util/data/tags.csv: util/data
 	cd util/data && wget 'https://www.iana.org/assignments/cbor-tags/tags.csv'
+
+util/data/algorithms.csv: util/data
 	cd util/data && wget 'https://www.iana.org/assignments/cose/algorithms.csv'
+
+util/data/elliptic-curves.csv: util/data
 	cd util/data && wget 'https://www.iana.org/assignments/cose/elliptic-curves.csv'
+
+iana-csvs: util/data/tags.csv util/data/algorithms.csv util/data/elliptic-curves.csv
+
+iana-codegen:
+	go run util/cmd/from_csv.go

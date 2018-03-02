@@ -1,0 +1,58 @@
+Name,Value,Description,Reference,Recommended
+Reserved for Private Use,less than -65536,,[RFC8152],No
+Unassigned,-65536 to -43,,,
+RSAES-OAEP w/ SHA-512,-42,RSAES-OAEP w/ SHA-512,[RFC8230],Yes
+RSAES-OAEP w/ SHA-256,-41,RSAES-OAEP w/ SHA-256,[RFC8230],Yes
+RSAES-OAEP w/ RFC 8017 default parameters,-40,RSAES-OAEP w/ SHA-1,[RFC8230],Yes
+PS512,-39,RSASSA-PSS w/ SHA-512,[RFC8230],Yes
+PS384,-38,RSASSA-PSS w/ SHA-384,[RFC8230],Yes
+PS256,-37,RSASSA-PSS w/ SHA-256,[RFC8230],Yes
+ES512,-36,ECDSA w/ SHA-512,[RFC8152],Yes
+ES384,-35,ECDSA w/ SHA-384,[RFC8152],Yes
+ECDH-SS + A256KW,-34,ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key,[RFC8152],Yes
+ECDH-SS + A192KW,-33,ECDH SS w/ Concat KDF and AES Key Wrap w/ 192-bit key,[RFC8152],Yes
+ECDH-SS + A128KW,-32,ECDH SS w/ Concat KDF and AES Key Wrap w/ 128-bit key,[RFC8152],Yes
+ECDH-ES + A256KW,-31,ECDH ES w/ Concat KDF and AES Key Wrap w/ 256-bit key,[RFC8152],Yes
+ECDH-ES + A192KW,-30,ECDH ES w/ Concat KDF and AES Key Wrap w/ 192-bit key,[RFC8152],Yes
+ECDH-ES + A128KW,-29,ECDH ES w/ Concat KDF and AES Key Wrap w/ 128-bit key,[RFC8152],Yes
+ECDH-SS + HKDF-512,-28,ECDH SS w/ HKDF - generate key directly,[RFC8152],Yes
+ECDH-SS + HKDF-256,-27,ECDH SS w/ HKDF - generate key directly,[RFC8152],Yes
+ECDH-ES + HKDF-512,-26,ECDH ES w/ HKDF - generate key directly,[RFC8152],Yes
+ECDH-ES + HKDF-256,-25,ECDH ES w/ HKDF - generate key directly,[RFC8152],Yes
+Unassigned,-24 to -14,,,
+direct+HKDF-AES-256,-13,Shared secret w/ AES-MAC 256-bit key,[RFC8152],Yes
+direct+HKDF-AES-128,-12,Shared secret w/ AES-MAC 128-bit key,[RFC8152],Yes
+direct+HKDF-SHA-512,-11,Shared secret w/ HKDF and SHA-512,[RFC8152],Yes
+direct+HKDF-SHA-256,-10,Shared secret w/ HKDF and SHA-256,[RFC8152],Yes
+Unassigned,-9,,,
+EdDSA,-8,EdDSA,[RFC8152],Yes
+ES256,-7,ECDSA w/ SHA-256,[RFC8152],Yes
+direct,-6,Direct use of CEK,[RFC8152],Yes
+A256KW,-5,AES Key Wrap w/ 256-bit key,[RFC8152],Yes
+A192KW,-4,AES Key Wrap w/ 192-bit key,[RFC8152],Yes
+A128KW,-3,AES Key Wrap w/ 128-bit key,[RFC8152],Yes
+Unassigned,-2 to -1,,,
+Reserved,0,,[RFC8152],No
+A128GCM,1,"AES-GCM mode w/ 128-bit key, 128-bit tag",[RFC8152],Yes
+A192GCM,2,"AES-GCM mode w/ 192-bit key, 128-bit tag",[RFC8152],Yes
+A256GCM,3,"AES-GCM mode w/ 256-bit key, 128-bit tag",[RFC8152],Yes
+HMAC 256/64,4,HMAC w/ SHA-256 truncated to 64 bits,[RFC8152],Yes
+HMAC 256/256,5,HMAC w/ SHA-256,[RFC8152],Yes
+HMAC 384/384,6,HMAC w/ SHA-384,[RFC8152],Yes
+HMAC 512/512,7,HMAC w/ SHA-512,[RFC8152],Yes
+Unassigned,8-9,,,
+AES-CCM-16-64-128,10,"AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce",[RFC8152],Yes
+AES-CCM-16-64-256,11,"AES-CCM mode 256-bit key, 64-bit tag, 13-byte nonce",[RFC8152],Yes
+AES-CCM-64-64-128,12,"AES-CCM mode 128-bit key, 64-bit tag, 7-byte nonce",[RFC8152],Yes
+AES-CCM-64-64-256,13,"AES-CCM mode 256-bit key, 64-bit tag, 7-byte nonce",[RFC8152],Yes
+AES-MAC 128/64,14,"AES-MAC 128-bit key, 64-bit tag",[RFC8152],Yes
+AES-MAC 256/64,15,"AES-MAC 256-bit key, 64-bit tag",[RFC8152],Yes
+Unassigned,16-23,,,
+ChaCha20/Poly1305,24,"ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag",[RFC8152],Yes
+AES-MAC 128/128,25,"AES-MAC 128-bit key, 128-bit tag",[RFC8152],Yes
+AES-MAC 256/128,26,"AES-MAC 256-bit key, 128-bit tag",[RFC8152],Yes
+Unassigned,27-29,,,
+AES-CCM-16-128-128,30,"AES-CCM mode 128-bit key, 128-bit tag, 13-byte nonce",[RFC8152],Yes
+AES-CCM-16-128-256,31,"AES-CCM mode 256-bit key, 128-bit tag, 13-byte nonce",[RFC8152],Yes
+AES-CCM-64-128-128,32,"AES-CCM mode 128-bit key, 128-bit tag, 7-byte nonce",[RFC8152],Yes
+AES-CCM-64-128-256,33,"AES-CCM mode 256-bit key, 128-bit tag, 7-byte nonce",[RFC8152],Yes
