@@ -64,13 +64,32 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", example.Title))
 }
 
-func TestVerifyWGExamples(t *testing.T) {
+var SkipExampleTitles = map[string]bool{
+	"ECDSA-01: ECDSA - P-256": false, // ecdsa-01.json
+	"ECDSA-02: ECDSA - P-384": false, // ecdsa-02.json
+
+	"ECDSA-03: ECDSA - P-512": true, // ecdsa-03.json
+
+	"ECDSA-01: ECDSA - P-256 w/ SHA-512": false, // ecdsa-04.json
+
+	"ECDSA-01: ECDSA - P-256 - sign0": true, // ecdsa-sig-01.json
+	"ECDSA-sig-02: ECDSA - P-384 - sign1": true,  // ecdsa-sig-02.json
+	"ECDSA-03: ECDSA - P-512 - sign0": true,  // ecdsa-sig-03.json
+	"ECDSA-sig-01: ECDSA - P-256 w/ SHA-512 - implicit": true,  // ecdsa-sig-04.json
+}
+
+func TestWGExamples(t *testing.T) {
 	examples := append(
 		util.LoadExamples("./test/cose-wg-examples/sign-tests"),
-		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...)
+		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...
+	)
+
 
 	for _, example := range examples {
 		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func (t *testing.T) {
+			if v, ok := SkipExampleTitles[example.Title]; ok && v {
+				return
+			}
 			SignsAndVerifies(t, example)
 		})
 	}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	// "log"
 	"io"
+	generated "github.com/g-k/go-cose/generated"
 )
 
 const (
@@ -100,6 +101,35 @@ func (m *COSESignMessage) SetHeaders(h *COSEHeaders) {
 }
 
 
+func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
+	if tmp, ok := h.protected["alg"]; ok {
+		if algName, ok := tmp.(string); ok {
+			// fmt.Println(fmt.Sprintf("get by alg name %+v", algName))
+			alg, err = GetAlgByName(algName)
+			if err != nil {
+				return nil, err
+			} else {
+				return alg, nil
+			}
+		}
+	} else if tmp, ok := h.protected[uint64(1)]; ok {
+		// fmt.Println(fmt.Sprintf("get by value? %T", tmp))
+		if algValue, ok := tmp.(int64); ok {
+			// fmt.Println(fmt.Sprintf("get by value %+v", algValue))
+			alg, err = GetAlgByValue(algValue)
+			if err != nil {
+				return nil, err
+			} else {
+				return alg, nil
+			}
+
+		}
+	}
+	// ai, _ := h.protected[uint64(1)].(int)
+	// fmt.Println(fmt.Sprintf("getAlg else %+v %+v", h.protected["alg"], ai))
+	return nil, errors.New("Error fetching alg.")
+}
+
 func hashSigStructure(
 	message *COSESignMessage,
 	key *ecdsa.PublicKey,
@@ -116,11 +146,12 @@ func hashSigStructure(
 	} else if message.signatures[0].headers.protected == nil {
 		return nil, nil, errors.New("nil sig headers.protected")
 	}
+	alg, err := getAlg(message.signatures[0].headers)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
-	if !(message.signatures[0].headers.protected["alg"] == "ES256" || message.signatures[0].headers.protected[uint64(1)] == int64(-7)) {
-		return nil, nil, errors.New("alg not implemented.")
-	}
 
 	// 1.  Create a Sig_structure and populate it with the appropriate fields.
 	// Sig_structure = [
@@ -142,14 +173,21 @@ func hashSigStructure(
 	//     byte string, using the encoding described in Section 14.
 	ToBeSigned, err = CBOREncode(sig_structure)
 	if err != nil {
-		return nil, nil, errors.New(fmt.Sprintf("CBOREncode error encoding sig_structure: %s", err))
+		return nil, ToBeSigned, errors.New(fmt.Sprintf("CBOREncode error encoding sig_structure: %s", err))
 	}
 
 	var hash crypto.Hash
 
-	// ES256
-	// expectedBitSize := 256
-	hash = crypto.SHA256
+	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
+		hash = crypto.SHA256
+		// expectedBitSize := 256
+	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
+		hash = crypto.SHA384
+	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
+		hash = crypto.SHA512
+	} else {
+		return nil, nil, errors.New("alg not implemented.")
+	}
 
 	hasher := hash.New()
 	_, _ = hasher.Write(ToBeSigned)  // Write() on hash never fails
@@ -213,8 +251,7 @@ func Verify(message *COSESignMessage, publicKey *ecdsa.PublicKey, external []byt
 		return false, err
 	}
 
-	// ES256 / sha256
-	keySize := 32
+	keySize := publicKey.Curve.Params().BitSize / 8
 
 	// r and s from sig
 	signature := message.signatures[0].signature
