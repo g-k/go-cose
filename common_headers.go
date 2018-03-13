@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	generated "github.com/g-k/go-cose/generated"
 )
 
 
@@ -148,6 +149,34 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 // https://www.iana.org/assignments/cose/cose.xhtml#header-algorithm-parameters
 //
 // https://tools.ietf.org/html/rfc8152#section-16.4
+
+func GetAlgByName(name string) (alg *generated.COSEAlgorithm, err error) {
+	for _, alg := range generated.COSEAlgorithms {
+		if alg.Name == name {
+			return &alg, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("Algorithm named %s not found.", name))
+}
+
+func GetAlgByNameOrPanic(name string) (alg *generated.COSEAlgorithm) {
+	alg, err := GetAlgByName(name)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to get algorithm named %s", name))
+	}
+	return alg
+}
+
+func GetAlgByValue(value int64) (alg *generated.COSEAlgorithm, err error) {
+	for _, alg := range generated.COSEAlgorithms {
+		if int64(alg.Value) == value {
+			return &alg, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("Algorithm with value %v not found.", value))
+}
+
+
 func GetAlgTag(label string) (tag int, err error) {
 	switch label {
 	case "PS256":
