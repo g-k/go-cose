@@ -89,9 +89,21 @@ func LoadPrivateKey(example *COSEWGExample) (key ecdsa.PrivateKey) {
 	}
 	signerInput := example.Input.Sign.Signers[0]
 
+	var curve elliptic.Curve
+	switch signerInput.Key.Crv {
+	case "P-256":
+		curve = elliptic.P256()
+	case "P-384":
+		curve = elliptic.P384()
+	case "P-521":
+		curve = elliptic.P521()
+	default:
+		log.Fatalf("Can't load Private key with curve type: %s", signerInput.Key.Crv)
+	}
+
 	return ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
-			Curve: elliptic.P256(),
+			Curve: curve,
 			X: FromBase64Int(signerInput.Key.X),
 			Y: FromBase64Int(signerInput.Key.Y),
 		},
