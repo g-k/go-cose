@@ -190,18 +190,29 @@ func hashSigStructure(
 	}
 
 	var hash crypto.Hash
+	var expectedKeyBitSize int
 
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
+		expectedKeyBitSize = 256
 		hash = crypto.SHA256
-		// expectedBitSize := 256
 	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
+		expectedKeyBitSize = 384
 		hash = crypto.SHA384
 	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
+		expectedKeyBitSize = 521  // i.e. P-521
 		hash = crypto.SHA512
 	} else if alg.Value == GetAlgByNameOrPanic("PS256").Value {
+		expectedKeyBitSize = 256
 		hash = crypto.SHA256
 	} else {
 		return nil, nil, errors.New("alg not implemented.")
+	}
+
+	if ecdsaKey, ok := key.(*ecdsa.PublicKey); ok {
+		curveBits := ecdsaKey.Curve.Params().BitSize
+		if expectedKeyBitSize != curveBits {
+			return nil, nil, fmt.Errorf("expected %d bit key, got %d bits instead", expectedKeyBitSize, curveBits)
+		}
 	}
 
 	hasher := hash.New()
@@ -322,7 +333,21 @@ func Verify(message *COSESignMessage, publicKey crypto.PublicKey, external []byt
 			return false, err
 		}
 
-		keySize := key.Curve.Params().BitSize / 8
+		alg, err := getAlg(message.signatures[0].headers)
+		if err != nil {
+			return false, err
+		}
+
+		var keySize int
+		if alg.Value == GetAlgByNameOrPanic("ES256").Value {
+			keySize = 32
+		} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
+			keySize = 48
+		} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
+			keySize = 66
+		} else {
+			return false, errors.New("alg not implemented.")
+		}
 
 		// r and s from sig
 		signature := message.signatures[0].signature

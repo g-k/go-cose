@@ -73,10 +73,14 @@ var SkipExampleTitles = map[string]bool{
 	"ECDSA-01: ECDSA - P-256": false, // ecdsa-01.json
 	"ECDSA-02: ECDSA - P-384": false, // ecdsa-02.json
 
-	"ECDSA-03: ECDSA - P-512": true, // ecdsa-03.json
+	"ECDSA-03: ECDSA - P-512": false, // ecdsa-03.json
 
-	"ECDSA-01: ECDSA - P-256 w/ SHA-512": false, // ecdsa-04.json
+	// not recommended "SHA-256 be used only with curve P-256,
+	// SHA-384 be used only with curve P-384, and SHA-512 be used
+	// with curve P-521"
+	"ECDSA-01: ECDSA - P-256 w/ SHA-512": true, // ecdsa-04.json
 
+	// unsupported message types
 	"ECDSA-01: ECDSA - P-256 - sign0": true, // ecdsa-sig-01.json
 	"ECDSA-sig-02: ECDSA - P-384 - sign1": true,  // ecdsa-sig-02.json
 	"ECDSA-03: ECDSA - P-512 - sign0": true,  // ecdsa-sig-03.json
