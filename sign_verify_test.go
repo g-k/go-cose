@@ -61,7 +61,7 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 
 	// Verify our signature (round trip)
 	ok, err = Verify(output, &privateKey.PublicKey, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed", example.Title))
+	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", example.Title, err))
 	assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", example.Title))
 }
 
