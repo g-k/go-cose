@@ -671,6 +671,58 @@ var RSA_PARAMS = COSERustSignatureParameters {
 // }
 
 
+type COSERustTestCase struct {
+	Title string  // test fn name in cose-rust/examples/sign_verify/main.rs
+}
+
+var COSERustTestCases = []COSERustTestCase{
+	// Basic NSS example usage.
+	{
+		Title: "test_nss_sign_verify",
+	},
+	{
+		Title: "test_nss_sign_verify_different_payload",
+	},
+	{
+		Title: "test_nss_sign_verify_wrong_cert",
+	},
+
+	// COSE sign/verify example usages.
+	{
+		Title: "test_cose_sign_verify_two_signatures_tampered_signature",
+	},
+	{
+		Title: "test_cose_sign_verify_two_signatures_tampered_payload",
+	},
+	{
+		Title: "test_cose_sign_verify_two_signatures",
+	},
+	{
+		Title: "test_cose_sign_verify_rsa_tampered_signature",
+	},
+	{
+		Title: "test_cose_sign_verify_rsa_modified_payload",
+	},
+	{
+		Title: "test_cose_sign_verify_rsa",
+	},
+	{
+		Title: "test_cose_sign_verify_tampered_signature",
+	},
+	{
+		Title: "test_cose_sign_verify_wrong_cert",
+	},
+	{
+		Title: "test_cose_sign_verify_modified_payload",
+	},
+	{
+		Title: "test_cose_verify_xpi_signature",
+	},
+	{
+		Title: "test_cose_sign_verify",
+	},
+}
+
 func TestRustCoseExamples(t *testing.T) {
 	algTag, err := GetCommonHeaderTag("alg")
 	if err != nil {
