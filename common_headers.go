@@ -103,6 +103,14 @@ func GetCommonHeaderTag(label string) (tag int, err error) {
 	}
 }
 
+func GetCommonHeaderTagOrPanic(label string) (tag int) {
+	tag, err := GetCommonHeaderTag(label)
+	if err != nil {
+		log.Fatalf(fmt.Sprintf("Failed to find a tag for label %s", label))
+	}
+	return tag
+}
+
 // GetCommonHeaderLabel returns the CBOR label for the map tag
 // inverse of GetCommonHeaderTag
 func GetCommonHeaderLabel(tag int) (label string, err error) {
