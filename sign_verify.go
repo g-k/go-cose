@@ -114,9 +114,9 @@ func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
 			}
 		}
 	} else if tmp, ok := h.protected[uint64(1)]; ok {
-		// fmt.Println(fmt.Sprintf("get by value? %T", tmp))
+		// fmt.Println(fmt.Sprintf("get by value int64? %T", tmp))
 		if algValue, ok := tmp.(int64); ok {
-			// fmt.Println(fmt.Sprintf("get by value %+v", algValue))
+			// fmt.Println(fmt.Sprintf("get by value int64? %+v", algValue))
 			alg, err = GetAlgByValue(algValue)
 			if err != nil {
 				return nil, err
