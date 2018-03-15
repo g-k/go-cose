@@ -25,6 +25,8 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	decoded, err := CBORDecode(util.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
+	// fmt.Println(fmt.Sprintf("Decoded: %+v", decoded))
+
 	// ugorji/go/codec won't use the Ext to decode without the right CBOR tag
 	if ExpectCastToFail(example.Title) {
 		return
@@ -32,6 +34,8 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 
 	msg, ok := decoded.(COSESignMessage)
 	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
+
+	// fmt.Println(fmt.Sprintf("Decoded after cast: %+v", msg))
 
 	// Test Verify
 	ok, err = Verify(&msg, &privateKey.PublicKey, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
@@ -87,6 +91,8 @@ func TestWGExamples(t *testing.T) {
 
 
 	for _, example := range examples {
+		// fmt.Println(fmt.Sprintf("Example: %+v", example))
+
 		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func (t *testing.T) {
 			if v, ok := SkipExampleTitles[example.Title]; ok && v {
 				return
