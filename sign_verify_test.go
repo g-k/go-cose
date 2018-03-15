@@ -48,6 +48,7 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	// fail and the intermediates are wrong
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
 	output, err, ToBeSigned := Sign(&msg, &privateKey, randReader, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 
 	// check intermediate
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
