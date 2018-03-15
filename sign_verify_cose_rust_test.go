@@ -3,13 +3,12 @@ package cose
 import (
 	// "bytes"
 	// "strings"
-	// "crypto"
+	"crypto"
 	"crypto/rsa"
-	// "crypto/ecdsa"
+	"crypto/ecdsa"
 	"crypto/x509"
 	"math/rand"
 	"fmt"
-	"log"
 	"testing"
 	// "encoding/binary"
 	// "encoding/hex"
@@ -659,123 +658,216 @@ var RSA_PARAMS = COSERustSignatureParameters {
     pkcs8: PKCS8_RSA_EE[:],
 };
 
-// buildRustExample converts cose-rust test case params to go-cose
-// Sign and Verify args i.e. serializes cert chain
-// func buildRustExample(*COSERustSignatureParameters) (
-// 	message *COSESignMessage,
-// 	key *ecdsa.PrivateKey,
-// 	external []byte) {
-// 	message = NewCOSESignMessage()
-
-// 	return
-// }
-
 
 type COSERustTestCase struct {
 	Title string  // test fn name in cose-rust/examples/sign_verify/main.rs
+	SignAlg *generated.COSEAlgorithm // COSE signing algorithm to use
+	SignPayload []byte // payload to sign
+	VerifyPayload []byte // payload to verify (defaults to SignPayload)
+	Certs []byte
+	Params []COSERustSignatureParameters
+	// SignError // expected error nil for success/ok
+	// VerifyError // expected error nil for success/ok
 }
 
+// From cose-rust/examples/sign_verify/main.rs::main
 var COSERustTestCases = []COSERustTestCase{
 	// Basic NSS example usage.
-	{
-		Title: "test_nss_sign_verify",
-	},
-	{
-		Title: "test_nss_sign_verify_different_payload",
-	},
-	{
-		Title: "test_nss_sign_verify_wrong_cert",
-	},
+	// {
+	// 	Title: "test_nss_sign_verify",
+	// 	SignPayload: []byte("sample"),
+	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload)
+	// 	// nss::verify_signature(
+	// 	// 	&SignatureAlgorithm::ES256,
+	// 	// 	P256_EE,
+	// 	// 	payload,
+	// 	// 	&signature_result,
+	// 	// ).is_ok()
+	// },
+	// {
+	// 	// Verify the signature with a different payload.
+	// 	Title: "test_nss_sign_verify_different_payload",
+	// 	SignPayload: []byte("sample"),
+	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+	// 	VerifyPayload: []byte("sampli"),
+
+	// 	// nss::sign(&SignatureAlgorithm::ES256, PKCS8_P256_EE, payload);
+	// 	// verify_result = nss::verify_signature(
+	// 	// &SignatureAlgorithm::ES256,
+	// 	// P256_EE,
+	// 	// payload,
+	// 	// &signature_result,
+	// 	// );
+	// 	// assert!(verify_result.is_err
+	// 	// assert_eq!(verify_result, NSSError::SignatureVerificationFail
+	// },
+	// {
+	// 	// Verify the signature with a wrong cert.
+	// 	Title: "test_nss_sign_verify_wrong_cert",
+	// 	SignPayload: []byte("sample"),
+	// 	SignAlg: GetAlgByNameOrPanic("ES256"),
+
+	// 	// verify_result = nss::verify_signature(
+	// 	// 	&SignatureAlgorithm::ES256,
+	// 	// 	P384_EE,
+	// 	// 	payload,
+	// 	// 	&signature_result,
+	// 	// );
+	// 	// assert!(verify_result.is_err(
+	// 	// assert_eq!(verify_result, NSSError::SignatureVerificationFailed
+	// },
 
 	// COSE sign/verify example usages.
-	{
-		Title: "test_cose_sign_verify_two_signatures_tampered_signature",
-	},
-	{
-		Title: "test_cose_sign_verify_two_signatures_tampered_payload",
-	},
+	// {
+	// 	Title: "test_cose_sign_verify_two_signatures_tampered_signature",
+	// 	SignPayload: []byte("This is the content."),
+	// 	Certs: append(append(append(P256_ROOT[:], P256_INT[:]...)[:], RSA_ROOT[:]...)[:], RSA_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
+	// 	// test_verify_modified_signature(payload, &certs, params_vec);
+	// },
+	// {
+	// 	Title: "test_cose_sign_verify_two_signatures_tampered_payload",
+	// 	SignPayload: []byte("This is the content."),
+	// 	Certs: append(append(append(P256_ROOT[:], P256_INT[:]...)[:], RSA_ROOT[:]...)[:], RSA_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
+	// 	// test_verify_modified_payload(&mut payload, &certs, params_vec);
+	// },
 	{
 		Title: "test_cose_sign_verify_two_signatures",
+		SignPayload: []byte("This is the content."),
+		Certs: append(append(append(P256_ROOT[:], P256_INT[:]...)[:], RSA_ROOT[:]...)[:], RSA_INT[:]...),
+		Params: []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
 	},
-	{
-		Title: "test_cose_sign_verify_rsa_tampered_signature",
-	},
-	{
-		Title: "test_cose_sign_verify_rsa_modified_payload",
-	},
+	// {
+	// 	Title: "test_cose_sign_verify_rsa_tampered_signature",
+	// 	SignPayload: []byte("This is the RSA-signed content."),
+	// 	Certs: append(RSA_ROOT[:], RSA_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{RSA_PARAMS},
+	// 	// test_verify_modified_signature(payload, &certs, params_vec);
+	// },
+	// {
+	// 	Title: "test_cose_sign_verify_rsa_modified_payload",
+	// 	SignPayload: []byte("This is the RSA-signed content."),
+	// 	Certs: append(RSA_ROOT[:], RSA_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{RSA_PARAMS},
+	// 	// test_verify_modified_payload(&mut payload, &certs, params_vec);
+	// },
 	{
 		Title: "test_cose_sign_verify_rsa",
+		SignPayload: []byte("This is the RSA-signed content."),
+		Certs: append(RSA_ROOT[:], RSA_INT[:]...),
+		Params: []COSERustSignatureParameters{RSA_PARAMS},
+	},
+	// {
+	// 	Title: "test_cose_sign_verify_tampered_signature",
+	// 	SignPayload: []byte("This is the content."),
+	// 	Certs: append(P256_ROOT[:], P256_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{P256_PARAMS},
+	// 	// test_verify_modified_signature(payload, &certs, params_vec);
+	// },
+	// {
+	// 	Title: "test_cose_sign_verify_wrong_cert",
+	// 	SignPayload: []byte("This is the content."),
+	// 	Certs: append(P256_ROOT[:], P256_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{
+	// 		COSERustSignatureParameters{
+	// 			certificate: P384_EE[:],
+	// 			algorithm: GetAlgByNameOrPanic("ES256"),
+	// 			pkcs8: PKCS8_P256_EE[:],
+	// 		},
+	// 	},
+	// 	// test_verify_verification_fails(payload, &certs, params_vec);
+	// },
+	// {
+	// 	Title: "test_cose_sign_verify_modified_payload",
+	// 	SignPayload: []byte("This is the content."),
+	// 	Certs: append(P256_ROOT[:], P256_INT[:]...),
+	// 	Params: []COSERustSignatureParameters{P256_PARAMS},
+	// 	// test_verify_modified_payload(&mut payload, &certs, params_vec);
+	// },
+	// {
+	// 	Title: "test_cose_verify_xpi_signature",
+	// 	// test::setup();
+	// 	// assert!(verify_signature(XPI_PAYLOAD, test::XPI_SIGNATURE.to_vec()).is_ok(
+	// },
+
+	// NB: These are split out a different tests from test_cose_sign_verify in cose-rust
+	{
+		Title: "test_cose_sign_verify_P256",
+		SignPayload: []byte("This is the content."),
+		Certs: append(P256_ROOT[:], P256_INT[:]...),
+		Params: []COSERustSignatureParameters{P256_PARAMS},
 	},
 	{
-		Title: "test_cose_sign_verify_tampered_signature",
+		Title: "test_cose_sign_verify_P256_no_other_certs",
+		SignPayload: []byte("This is the content."),
+		Certs: []byte(""),
+		Params: []COSERustSignatureParameters{P256_PARAMS},
 	},
 	{
-		Title: "test_cose_sign_verify_wrong_cert",
+		Title: "test_cose_sign_verify_P384",
+		SignPayload: []byte("This is the content."),
+		Params: []COSERustSignatureParameters{P384_PARAMS},
 	},
 	{
-		Title: "test_cose_sign_verify_modified_payload",
-	},
-	{
-		Title: "test_cose_verify_xpi_signature",
-	},
-	{
-		Title: "test_cose_sign_verify",
+		Title: "test_cose_sign_verify_P521",
+		SignPayload: []byte("This is the content."),
+		Params: []COSERustSignatureParameters{P521_PARAMS},
 	},
 }
 
+
 func TestRustCoseExamples(t *testing.T) {
-	algTag, err := GetCommonHeaderTag("alg")
-	if err != nil {
-		log.Fatalf("(something is very wrong) Failed to get algTag: %s", err)
+	algTag := GetCommonHeaderTagOrPanic("alg")
+	kidTag := GetCommonHeaderTagOrPanic("kid")
+	randReader := rand.New(rand.NewSource(0))
+
+	for _, testCase := range COSERustTestCases {
+		t.Run(testCase.Title, func (t *testing.T) {
+			fmt.Println(fmt.Sprintf("Running %s", testCase.Title))
+
+			assert := assert.New(t)
+			assert.True(len(testCase.Params) > 0, "No signature params!")
+
+			keys := make([]crypto.PrivateKey, 0)
+
+			message := NewCOSESignMessage([]byte(testCase.SignPayload))
+			for _, param := range testCase.Params {
+				key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
+				assert.Nil(err)
+				fmt.Println(fmt.Sprintf("private key type: %T", key))
+
+				keys = append(keys, key)
+
+
+				sig := NewCOSESignature()
+				sig.headers.protected[algTag] = param.algorithm.Value
+				sig.headers.protected[kidTag] = param.certificate
+
+				msgHeaders := NewCOSEHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
+				msgHeaders.protected[kidTag] = testCase.Certs
+				message.SetHeaders(msgHeaders)
+				message.AddSignature(sig)
+			}
+			assert.True(len(message.signatures) > 0)
+
+			for _, key := range keys {
+				message, err, _ := Sign(&message, key, randReader, nil)
+				assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", "!!", err))
+
+				// Verify our signature (round trip)
+				switch pkey := key.(type) {
+				case *rsa.PrivateKey:
+					ok, err := Verify(message, &pkey.PublicKey, nil)
+					assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", "!!", err))
+					assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", "!!"))
+				case *ecdsa.PrivateKey:
+					ok, err := Verify(message, &pkey.PublicKey, nil)
+					assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", "!!", err))
+					assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", "!!"))
+				}
+			}
+		})
 	}
-	kidTag, err := GetCommonHeaderTag("kid")
-	if err != nil {
-		log.Fatalf("(something is very wrong) Failed to get kidTag: %s", err)
-	}
-
-	t.Run("test_cose_sign_verify_rsa", func (t *testing.T) {
-		assert := assert.New(t)
-
-		payload := "This is the RSA-signed content."
-		cert_chain := append(RSA_ROOT[:], RSA_INT[:]...)
-		params := []COSERustSignatureParameters{RSA_PARAMS}
-
-		assert.True(len(params) > 0, "No signature params!")
-		keys := make([]*rsa.PrivateKey, 0)
-
-		message := NewCOSESignMessage([]byte(payload))
-		for _, param := range params {
-			key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
-			assert.Nil(err)
-			fmt.Println("") // fmt.Sprintf("private key type: %T", key))
-			pkey, ok := key.(*rsa.PrivateKey)
-			assert.True(ok)
-			keys = append(keys, pkey)
-
-			// Build the signature structure containing the protected headers and the
-			// payload to generate the payload that is actually signed.
-
-			sig := NewCOSESignature()
-			sig.headers.protected[algTag] = param.algorithm.Value
-			sig.headers.protected[kidTag] = param.certificate
-
-			msgHeaders := NewCOSEHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
-			msgHeaders.protected[kidTag] = cert_chain
-			message.SetHeaders(msgHeaders)
-			message.AddSignature(sig)
-		}
-		assert.True(len(message.signatures) > 0)
-
-		randReader := rand.New(rand.NewSource(0))
-
-		output, err, _ := Sign(&message, keys[0], randReader, nil)
-		assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", "!!", err))
-
-		// Verify our signature (round trip)
-		ok, err := Verify(output, &keys[0].PublicKey, nil)
-		assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", "!!", err))
-		assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", "!!"))
-
-		// SignsAndVerifies(t, example)
-	})
 }
