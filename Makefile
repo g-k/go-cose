@@ -34,11 +34,14 @@ iana-csvs: util/data/tags.csv util/data/algorithms.csv util/data/elliptic-curves
 iana-codegen:
 	go run util/cmd/from_csv.go
 
+golint:
+	go get -u golang.org/x/lint/golint
+
 godep:
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 goveralls:
 	go get github.com/mattn/goveralls
 
-ci: godep install coverage lint
+ci: godep golint install coverage lint
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
