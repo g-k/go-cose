@@ -46,5 +46,5 @@ godep:
 goveralls:
 	go get -u github.com/mattn/goveralls
 
-ci: godep golint goveralls install coverage lint
+ci: godep golint goveralls install coverage lint vet
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
