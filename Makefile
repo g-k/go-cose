@@ -34,4 +34,7 @@ iana-csvs: util/data/tags.csv util/data/algorithms.csv util/data/elliptic-curves
 iana-codegen:
 	go run util/cmd/from_csv.go
 
-ci: install coverage lint
+godep:
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+ci: godep install coverage lint
