@@ -11,6 +11,9 @@ install:
 lint:
 	golint
 
+vet:
+	go vet
+
 coverage:
 	go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
