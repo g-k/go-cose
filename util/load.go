@@ -82,8 +82,6 @@ func HexToBytesOrDie(s string) []byte {
 
 
 func LoadPrivateKey(example *COSEWGExample) (key ecdsa.PrivateKey) {
-	// TODO: support non-ecdsa key types
-
 	if len(example.Input.Sign.Signers) != 1 {
 		panic(fmt.Sprintf("Not one signer in example: %s", example.Title))
 	}
