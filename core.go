@@ -17,32 +17,39 @@ import (
 )
 
 const (
+	// text strings identifying the context of the signature
+	// https://tools.ietf.org/html/rfc8152#section-4.4
+
+	// ContextSignature for signatures using the COSE_Signature structure
 	ContextSignature = "Signature"
+
+	// ContextSignature1 for signatures using the COSE_Sign1 structure
 	ContextSignature1 = "Signature1"
+
+	// ContextCounterSignature for signatures used as counter signature attributes
 	ContextCounterSignature = "CounterSignature"
 )
 
-// COSESigner
-type COSESigner struct {
+// Signer - implements crypto.Signer interface
+type Signer struct {
 	privateKey crypto.PrivateKey
 }
-// NewCOSESigner
-// implements crypto.Signer
-func NewCOSESigner(privateKey crypto.PrivateKey) (signer *COSESigner, err error) {
+// NewSigner checks whether the privateKey is supported and returns a new cose.Signer
+func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 	switch privateKey.(type) {
 	case *rsa.PrivateKey:
 	case *ecdsa.PrivateKey:
 	case rsa.PrivateKey:
 	case ecdsa.PrivateKey:
 	default:
-		return nil, errors.New("Could not return public key for Unrecognized private key type.")
+		return nil, errors.New("Could not return public key for Unrecognized private key type")
 	}
-	return &COSESigner{
+	return &Signer{
 		privateKey: privateKey,
 	}, nil
 }
-// Public
-func (s *COSESigner) Public() (publicKey crypto.PublicKey) {
+// Public returns the crypto.PublicKey for the Signer's privateKey
+func (s *Signer) Public() (publicKey crypto.PublicKey) {
 	switch key := s.privateKey.(type) {
 	case *rsa.PrivateKey:
 		return key.Public()
@@ -53,24 +60,28 @@ func (s *COSESigner) Public() (publicKey crypto.PublicKey) {
 	}
 	return
 }
+// SignOpts are options for cose.Signer.Sign
+//
+// HashFunc is the crypto.Hash to apply to the SigStructure
+// func GetSigner returns the cose.Signer or an error for the
 type SignOpts struct {
 	HashFunc crypto.Hash
-	GetSigner func(index int, signature COSESignature) (COSESigner, error)
+	GetSigner func(index int, signature Signature) (Signer, error)
 }
 // Sign returns a byte slice of the COSE signature
-func (s *COSESigner) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature []byte, err error) {
+func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature []byte, err error) {
 	switch key := s.privateKey.(type) {
 	case *rsa.PrivateKey:
 		sig, err := rsa.SignPSS(rand, key, opts.HashFunc, digest, nil)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("rsa.SignPSS error %s", err))
+			return nil, fmt.Errorf("rsa.SignPSS error %s", err)
 		}
 		return sig, nil
 	case *ecdsa.PrivateKey:
 		// https://tools.ietf.org/html/rfc8152#section-8.1
 		r, s, err := ecdsa.Sign(rand, key, digest)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("ecdsa.Sign error %s", err))
+			return nil, fmt.Errorf("ecdsa.Sign error %s", err)
 		}
 
 		// assert r and s are the same length will be the same length
@@ -86,7 +97,7 @@ func (s *COSESigner) Sign(rand io.Reader, digest []byte, opts SignOpts) (signatu
 		curveBits := key.Curve.Params().BitSize
 		keyBytes := curveBits / 8
 		if curveBits % 8 > 0 {
-			keyBytes += 1
+			keyBytes++
 		}
 
 		n := keyBytes
@@ -96,16 +107,16 @@ func (s *COSESigner) Sign(rand io.Reader, digest []byte, opts SignOpts) (signatu
 
 		return sig, nil
 	default:
-		return nil, errors.New("Unrecognized private key type.")
+		return nil, errors.New("Unrecognized private key type")
 	}
 	return
 }
-// Verifier returns a COSEVerifier using the COSESigners public key and a func that returns whether the key is valid?
-func (s *COSESigner) Verifier(
+// Verifier returns a Verifier using the Signers public key and a func that returns whether the key is valid?
+func (s *Signer) Verifier(
 	alg *generated.COSEAlgorithm,
-	// getVerifierFunc (index int, signature COSESignature) (COSEVerifier, error)
-) (verifier *COSEVerifier) {
-	return &COSEVerifier{
+	// getVerifierFunc (index int, signature Signature) (Verifier, error)
+) (verifier *Verifier) {
+	return &Verifier{
 		publicKey: s.Public(),
 		opts: VerifierOpts{
 			alg: alg,
@@ -114,20 +125,21 @@ func (s *COSESigner) Verifier(
 }
 
 
-// COSEVerifier
-type COSEVerifier struct {
+// Verifier -
+type Verifier struct {
 	publicKey crypto.PublicKey
 	opts VerifierOpts
 }
+// VerifierOpts -
 type VerifierOpts struct {
 	alg *generated.COSEAlgorithm
-	// keyFinder func (kid interface{}) (keyFound bool)
 }
+// VerifyOpts -
 type VerifyOpts struct {
-	GetVerifier func(index int, signature COSESignature) (COSEVerifier, error)
+	GetVerifier func(index int, signature Signature) (Verifier, error)
 }
 // Verify returns nil for success or an error
-func (v *COSEVerifier) Verify(digest []byte, signature []byte) (err error) {
+func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	switch key := v.publicKey.(type) {
 	case *rsa.PublicKey:
 		_, hash, err := getExpectedArgsForAlg(v.opts.alg)
@@ -137,7 +149,7 @@ func (v *COSEVerifier) Verify(digest []byte, signature []byte) (err error) {
 
 		err = rsa.VerifyPSS(key, hash, digest, signature, nil)
 		if err != nil {
-			return errors.New(fmt.Sprintf("verification failed rsa.VerifyPSS err %s", err))
+			return fmt.Errorf("verification failed rsa.VerifyPSS err %s", err)
 		}
 	case *ecdsa.PublicKey:
 		keySize, err := getKeySizeForAlg(v.opts.alg)
@@ -147,7 +159,7 @@ func (v *COSEVerifier) Verify(digest []byte, signature []byte) (err error) {
 
 		// r and s from sig
 		if len(signature) != 2 * keySize {
-			return errors.New(fmt.Sprintf("invalid signature length: %d", len(signature)))
+			return fmt.Errorf("invalid signature length: %d", len(signature))
 		}
 
 		r := big.NewInt(0).SetBytes(signature[:keySize])
@@ -156,11 +168,10 @@ func (v *COSEVerifier) Verify(digest []byte, signature []byte) (err error) {
 		ok := ecdsa.Verify(key, digest, r, s)
 		if ok {
 			return nil
-		} else {
-			return errors.New("verification failed ecdsa.Verify")
 		}
+		return errors.New("verification failed ecdsa.Verify")
 	default:
-		return errors.New("Unrecognized publicKey type.")
+		return errors.New("Unrecognized publicKey type")
 	}
 	return
 }
@@ -171,8 +182,8 @@ func (v *COSEVerifier) Verify(digest []byte, signature []byte) (err error) {
 // imperative functions on byte slices level
 
 func buildAndCBOREncodeSigStructure(
-	body_protected []byte,
-	sign_protected []byte,
+	bodyProtected []byte,
+	signProtected []byte,
 	external []byte,
 	payload []byte,
 ) (ToBeSigned []byte, err error) {
@@ -185,19 +196,19 @@ func buildAndCBOREncodeSigStructure(
 	//     external_aad : bstr,
 	//     payload : bstr
 	// ]
-	sig_structure := []interface{}{
+	sigStructure := []interface{}{
 		ContextSignature,
-		body_protected, // message.headers.EncodeProtected(),
-		sign_protected, // message.signatures[0].headers.EncodeProtected(),
+		bodyProtected, // message.headers.EncodeProtected(),
+		signProtected, // message.signatures[0].headers.EncodeProtected(),
 		external,
 		payload,
 	}
 
 	// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 	//     byte string, using the encoding described in Section 14.
-	ToBeSigned, err = CBOREncode(sig_structure)
+	ToBeSigned, err = CBOREncode(sigStructure)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("CBOREncode error encoding sig_structure: %s", err))
+		return nil, fmt.Errorf("CBOREncode error encoding sigStructure: %s", err)
 	}
 	return ToBeSigned, nil
 }
@@ -209,7 +220,12 @@ func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte) {
 	return digest
 }
 
+// I2OSP converts a nonnegative integer to an octet string of a specified length
+// https://tools.ietf.org/html/rfc8017#section-4.1
+//
+// implementation from
 // https://github.com/r2ishiguro/vrf/blob/69d5bfb37b72b7b932ffe34213778bdb319f0438/go/vrf_ed25519/vrf_ed25519.go#L206
+// (Apache License 2.0)
 func I2OSP(b *big.Int, n int) []byte {
 	os := b.Bytes()
 	if n > len(os) {
@@ -217,7 +233,6 @@ func I2OSP(b *big.Int, n int) []byte {
 		buf.Write(make([]byte, n - len(os)))	// prepend 0s
 		buf.Write(os)
 		return buf.Bytes()
-	} else {
-		return os[:n]
 	}
+	return os[:n]
 }

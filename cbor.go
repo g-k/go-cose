@@ -13,13 +13,15 @@ import (
 	codec "github.com/ugorji/go/codec"
 )
 
-
+// CBOREncode blah
+// TODO: use common encoder interfaces
 func CBOREncode(o interface{}) (b []byte, err error) {
 	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
 
 	err = enc.Encode(o)
 	return b, err
 }
+// CBORDecode blah
 func CBORDecode(b []byte) (o interface{}, err error) {
 	var dec *codec.Decoder = codec.NewDecoderBytes(b, GetCOSEHandle())
 
@@ -27,12 +29,14 @@ func CBORDecode(b []byte) (o interface{}, err error) {
 	return o, err
 }
 
-type COSEExt struct{}
-func (x COSEExt) ConvertExt(v interface{}) interface{} {
+// Ext a codec.cbor extension
+type Ext struct{}
+// ConvertExt blah
+func (x Ext) ConvertExt(v interface{}) interface{} {
 	fmt.Println(fmt.Printf("ENCODING %v", v))
-	message, ok := v.(*COSESignMessage)
+	message, ok := v.(*SignMessage)
 	if !ok {
-		panic(fmt.Sprintf("unsupported format expecting to encode COSESignMessage; got %T", v))
+		panic(fmt.Sprintf("unsupported format expecting to encode SignMessage; got %T", v))
 	}
 
 	sigs := make([]interface{}, len(message.signatures))
@@ -52,8 +56,9 @@ func (x COSEExt) ConvertExt(v interface{}) interface{} {
 	}
 }
 
+// UpdateExt blah
 // TODO: decompress headers too?
-func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
+func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	// fmt.Println(fmt.Sprintf("v: %x", v))
 
 	var src, vok = v.([]interface{})
@@ -61,11 +66,11 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("unsupported format expecting to decode from []interface{}; got %T", v))
 	}
 	if len(src) != 4 {
-		panic(fmt.Sprintf("can only decode COSESignMessage with 4 fields; got %d", len(src)))
+		panic(fmt.Sprintf("can only decode SignMessage with 4 fields; got %d", len(src)))
 	}
 	// fmt.Println(fmt.Sprintf("src[0]: %+v %T", src[0], src[0]))
 
-	var msgHeaders = NewCOSEHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
+	var msgHeaders = NewHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
 	err := msgHeaders.DecodeProtected(src[0])
 	if err != nil {
 		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
@@ -81,7 +86,7 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("error decoding msg payload decode from interface{} to []byte; got %T", src[2]))
 	}
 
-	var m = NewCOSESignMessage(payload)
+	var m = NewSignMessage(payload)
 	var message = &m
 	message.SetHeaders(msgHeaders)
 
@@ -90,15 +95,15 @@ func (x COSEExt) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("error decoding sigs; got %T", src[3]))
 	}
 	for _, sig := range sigs {
-		sigT := NewCOSESignature()
+		sigT := NewSignature()
 		sigT.Decode(sig)
 		message.AddSignature(sigT)
 	}
 	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
 
-	destMessage, ok := dest.(*COSESignMessage)
+	destMessage, ok := dest.(*SignMessage)
 	if !ok {
-		panic(fmt.Sprintf("unsupported format expecting to decode into *COSESignMessage; got %T", dest))
+		panic(fmt.Sprintf("unsupported format expecting to decode into *SignMessage; got %T", dest))
 	}
 	*destMessage = *message
 }
@@ -111,7 +116,7 @@ func GetCOSEHandle() (h *codec.CborHandle) {
 	h.IndefiniteLength = false  // no streaming
 	h.Canonical = true // sort map keys
 
-	var cExt COSEExt
+	var cExt Ext
 
 	// COSE Message CBOR tags from
 	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
@@ -122,7 +127,7 @@ func GetCOSEHandle() (h *codec.CborHandle) {
 
 	// h.SetInterfaceExt(reflect.TypeOf(COSEEncryptMessage{}), 96, cExt)
 	// h.SetInterfaceExt(reflect.TypeOf(COSEMACMessage{}), 97, cExt)
-	h.SetInterfaceExt(reflect.TypeOf(COSESignMessage{}), 98, cExt)
+	h.SetInterfaceExt(reflect.TypeOf(SignMessage{}), 98, cExt)
 
 	return h
 }

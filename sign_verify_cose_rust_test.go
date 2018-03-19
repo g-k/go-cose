@@ -836,25 +836,25 @@ func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
 	assert := assert.New(t)
 	assert.True(len(testCase.Params) > 0, "No signature params!")
 
-	message := NewCOSESignMessage([]byte(testCase.SignPayload))
+	message := NewSignMessage([]byte(testCase.SignPayload))
 
-	signers := []COSESigner{}
-	verifiers := []COSEVerifier{}
+	signers := []Signer{}
+	verifiers := []Verifier{}
 
 	for _, param := range testCase.Params {
 		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
 		assert.Nil(err)
 
-		signer, err := NewCOSESigner(key)
+		signer, err := NewSigner(key)
 		assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", testCase.Title, err))
 		signers = append(signers, *signer)
 		verifiers = append(verifiers, *signer.Verifier(param.algorithm))
 
-		sig := NewCOSESignature()
+		sig := NewSignature()
 		sig.headers.protected[algTag] = param.algorithm.Value
 		sig.headers.protected[kidTag] = param.certificate
 
-		msgHeaders := NewCOSEHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
+		msgHeaders := NewHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
 		msgHeaders.protected[kidTag] = testCase.Certs
 		message.SetHeaders(msgHeaders)
 		message.AddSignature(sig)
@@ -865,7 +865,7 @@ func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
 	external := []byte("")
 
 	err := message.Sign(randReader, external, SignOpts{
-		GetSigner: func(index int, signature COSESignature) (COSESigner, error) {
+		GetSigner: func(index int, signature Signature) (Signer, error) {
 			return signers[index], nil
 		},
 	})
@@ -882,7 +882,7 @@ func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
 
 	// Verify our signature (round trip)
 	err = message.Verify(external, &VerifyOpts{
-		GetVerifier: func (index int, signature COSESignature) (COSEVerifier, error) {
+		GetVerifier: func (index int, signature Signature) (Verifier, error) {
 			return verifiers[index], nil
 		},
 	})
@@ -893,7 +893,6 @@ func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
 	}
 }
 
-
 func TestRustCoseExamples(t *testing.T) {
 	for _, testCase := range COSERustTestCases {
 		t.Run(testCase.Title, func (t *testing.T) {
@@ -901,7 +900,6 @@ func TestRustCoseExamples(t *testing.T) {
 		})
 	}
 }
-
 
 func TestRustCoseVerifyXPI(t *testing.T) {
 	assert := assert.New(t)

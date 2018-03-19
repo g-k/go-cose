@@ -30,11 +30,11 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 		return
 	}
 
-	message, ok := decoded.(COSESignMessage)
-	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
+	message, ok := decoded.(SignMessage)
+	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to SignMessage", example.Title))
 
 	// TODO: pass alg to signer?
-	signer, err := NewCOSESigner(&privateKey)
+	signer, err := NewSigner(&privateKey)
 	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
 
 	verifier := signer.Verifier(alg)
@@ -43,7 +43,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	// Test Verify - signatures CBOR decoded from example
 	assert.NotNil(message.signatures[0].signature)
 	err = message.Verify(external, &VerifyOpts{
-		GetVerifier: func (index int, signature COSESignature) (COSEVerifier, error) {
+		GetVerifier: func (index int, signature Signature) (Verifier, error) {
 			return *verifier, nil
 		},
 	})
@@ -67,7 +67,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 
 	err = message.Sign(randReader, external, SignOpts{
 		HashFunc: hash,
-		GetSigner: func(index int, signature COSESignature) (COSESigner, error) {
+		GetSigner: func(index int, signature Signature) (Signer, error) {
 			return *signer, nil
 		},
 	})
@@ -108,7 +108,7 @@ var SkipExampleTitles = map[string]bool{
 }
 
 func ExpectCastToFail(title string) (shouldFail bool) {
-	// (g-k) these decode but not to COSESignMessages since I
+	// (g-k) these decode but not to SignMessages since I
 	// haven't found a way to get ugorji/go/codec to use our
 	// extension to decode without the right CBOR tag
 	return title == "sign-pass-03: Remove CBOR Tag" || title == "sign-fail-01: Wrong CBOR Tag"

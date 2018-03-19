@@ -9,33 +9,40 @@ import (
 )
 
 
-type COSEHeaders struct {
+// Headers - maps of protected and unprotected tags
+type Headers struct {
 	protected map[interface{}]interface{}
 	unprotected map[interface{}]interface{}
 }
-func NewCOSEHeaders(
+// NewHeaders -
+// TODO: replace if this doesn't do validation
+func NewHeaders(
 	protected map[interface{}]interface{},
-	unprotected map[interface{}]interface{}) (h *COSEHeaders) {
-	return &COSEHeaders{
+	unprotected map[interface{}]interface{}) (h *Headers) {
+	return &Headers{
 		protected: protected,
 		unprotected: unprotected,
 	}
 }
-func (h *COSEHeaders) MarshalBinary() (data []byte, err error) {
-	// TODO: include unprotected
+// MarshalBinary serializes the headers for CBOR (untagged)
+func (h *Headers) MarshalBinary() (data []byte, err error) {
+	// TODO: include unprotected?
 	return h.EncodeProtected(), nil
 }
-func (h *COSEHeaders) UnmarshalBinary(data []byte) (err error) {
-	panic("unsupported COSEHeaders.UnmarshalBinary")
+// UnmarshalBinary not implemented; panics
+func (h *Headers) UnmarshalBinary(data []byte) (err error) {
+	panic("unsupported Headers.UnmarshalBinary")
 }
-func (h *COSEHeaders) EncodeUnprotected() (encoded map[interface{}]interface{}) {
+// EncodeUnprotected returns headers with shortened tags
+func (h *Headers) EncodeUnprotected() (encoded map[interface{}]interface{}) {
 	return CompressHeaders(h.unprotected)
 }
-func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
+// EncodeProtected can panic
+func (h *Headers) EncodeProtected() (bstr []byte) {
 	// TODO: check for dups in maps
 	// fmt.Println(fmt.Printf("EncodeProtected\n%T %+v %v", h.protected, h.protected, h.protected == nil))
 	if h == nil {
-		panic("Cannot encode nil COSEHeaders")
+		panic("Cannot encode nil Headers")
 	}
 
 	if h.protected == nil || len(h.protected) < 1 {
@@ -48,10 +55,11 @@ func (h *COSEHeaders) EncodeProtected() (bstr []byte) {
 	}
 	return encoded
 }
-func (h *COSEHeaders) DecodeProtected(o interface {}) (err error) {
+// DecodeProtected CBORDecodes from interface{}
+func (h *Headers) DecodeProtected(o interface {}) (err error) {
 	b, ok := o.([]byte)
 	if !ok {
-		return errors.New(fmt.Sprintf("error casting protected header bytes; got %T", o))
+		return fmt.Errorf("error casting protected header bytes; got %T", o)
 	}
 	if len(b) <= 0 {
 		return nil
@@ -59,20 +67,21 @@ func (h *COSEHeaders) DecodeProtected(o interface {}) (err error) {
 
 	protected, err := CBORDecode(b)
 	if err != nil {
-		return errors.New(fmt.Sprintf("error CBOR decoding protected header bytes; got %T", protected))
+		return fmt.Errorf("error CBOR decoding protected header bytes; got %T", protected)
 	}
 	protectedMap, ok := protected.(map[interface {}]interface {})
 	if !ok {
-		return errors.New(fmt.Sprintf("error casting protected to map; got %T", protected))
+		return fmt.Errorf("error casting protected to map; got %T", protected)
 	}
 
 	h.protected = protectedMap
 	return nil
 }
-func (h *COSEHeaders) DecodeUnprotected(o interface {}) (err error) {
+// DecodeUnprotected CBORDecodes from interface{}
+func (h *Headers) DecodeUnprotected(o interface {}) (err error) {
 	msgHeadersUnprotected, ok := o.(map[interface {}]interface {})
 	if !ok {
-		return errors.New(fmt.Sprintf("error decoding unprotected header as map[interface {}]interface {}; got %T", o))
+		return fmt.Errorf("error decoding unprotected header as map[interface {}]interface {}; got %T", o)
 	}
 	h.unprotected = msgHeadersUnprotected
 	return nil
@@ -100,10 +109,11 @@ func GetCommonHeaderTag(label string) (tag int, err error) {
 	case "counter signature":
 		return 7, nil
 	default:
-		return 0, errors.New("No common COSE tag for label.")
+		return 0, errors.New("No common COSE tag for label")
 	}
 }
 
+// GetCommonHeaderTagOrPanic for consts strings returns the CBOR label for a string
 func GetCommonHeaderTagOrPanic(label string) (tag int) {
 	tag, err := GetCommonHeaderTag(label)
 	if err != nil {
@@ -131,7 +141,7 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	case 7:
 		return "counter signature", nil
 	default:
-		return "", errors.New("No common COSE label for tag.")
+		return "", errors.New("No common COSE label for tag")
 	}
 }
 
@@ -159,15 +169,17 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 //
 // https://tools.ietf.org/html/rfc8152#section-16.4
 
+// GetAlgByName returns a generated.COSEAlgorithm for an IANA name
 func GetAlgByName(name string) (alg *generated.COSEAlgorithm, err error) {
 	for _, alg := range generated.COSEAlgorithms {
 		if alg.Name == name {
 			return &alg, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("Algorithm named %s not found.", name))
+	return nil, fmt.Errorf("Algorithm named %s not found", name)
 }
 
+// GetAlgByNameOrPanic returns a generated.COSEAlgorithm for an IANA name and panics otherwise
 func GetAlgByNameOrPanic(name string) (alg *generated.COSEAlgorithm) {
 	alg, err := GetAlgByName(name)
 	if err != nil {
@@ -176,16 +188,17 @@ func GetAlgByNameOrPanic(name string) (alg *generated.COSEAlgorithm) {
 	return alg
 }
 
+// GetAlgByValue returns a generated.COSEAlgorithm from an IANA value
 func GetAlgByValue(value int64) (alg *generated.COSEAlgorithm, err error) {
 	for _, alg := range generated.COSEAlgorithms {
 		if int64(alg.Value) == value {
 			return &alg, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("Algorithm with value %v not found.", value))
+	return nil, fmt.Errorf("Algorithm with value %v not found", value)
 }
 
-
+// GetAlgTag foo
 func GetAlgTag(label string) (tag int, err error) {
 	switch label {
 	case "PS256":
@@ -227,11 +240,11 @@ func GetAlgTag(label string) (tag int, err error) {
 	case "direct":
 		return -6, nil
 	default:
-		return 0, errors.New("Alg not implemented or invalid.")
+		return 0, errors.New("Alg not implemented or invalid")
 	}
 }
 
-// GetAlgTag returns the CBOR alg label/name for the alg tag
+// GetAlgLabel returns the CBOR alg label/name for the alg tag
 func GetAlgLabel(tag int) (label string, err error) {
 	switch tag {
 	case -37:
@@ -269,13 +282,12 @@ func GetAlgLabel(tag int) (label string, err error) {
 	case 10:
 		return "AES-CCM-16-64-128", nil
 	default:
-		return "", errors.New("Alg not implemented or invalid.")
+		return "", errors.New("Alg not implemented or invalid")
 	}
 }
 
+// CompressHeaders replaces string tags with their int values and alg tags with their IANA int values inverse of DecompressHeaders
 func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interface{}]interface{}) {
-	// fmt.Println(fmt.Printf("COMPRESSING %+v", headers))
-
 	compressed = map[interface{}]interface{}{}
 
 	for k, v := range headers {
@@ -294,18 +306,13 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 				}
 			}
 		}
-		// if vok && kstr != "alg" {
-		// 	v = []byte(vstr)
-		// }
 		compressed[k] = v
 	}
 
-	// fmt.Println(fmt.Printf("COMPRESSED %+v", compressed))
 	return compressed
 }
+// DecompressHeaders replaces  int values with string tags and alg int values with their IANA labels inverse of CompressHeaders
 func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[interface{}]interface{}) {
-	// fmt.Println(fmt.Printf("DECOMPRESSING %+v", headers))
-
 	decompressed = map[interface{}]interface{}{}
 
 	for k, v := range headers {
@@ -326,21 +333,18 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 		decompressed[k] = v
 	}
 
-	// fmt.Println(fmt.Printf("DECOMPRESSED %+v", decompressed))
 	return decompressed
 }
 
-
-func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
+// getAlg returns the alg by label, int, or uint64 tag (as from CBORDecode)
+func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 	if tmp, ok := h.protected["alg"]; ok {
 		if algName, ok := tmp.(string); ok {
-			// fmt.Println(fmt.Sprintf("get by alg name %+v", algName))
 			alg, err = GetAlgByName(algName)
 			if err != nil {
 				return nil, err
-			} else {
-				return alg, nil
 			}
+			return alg, nil
 		}
 	} else if tmp, ok := h.protected[uint64(1)]; ok {
 		// fmt.Println(fmt.Sprintf("get by value int64? %T", tmp))
@@ -349,10 +353,8 @@ func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
 			alg, err = GetAlgByValue(algValue)
 			if err != nil {
 				return nil, err
-			} else {
-				return alg, nil
 			}
-
+			return alg, nil
 		}
 	} else if tmp, ok := h.protected[int(1)]; ok {
 		// fmt.Println(fmt.Sprintf("get by value int? %T", tmp))
@@ -361,15 +363,13 @@ func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
 			alg, err = GetAlgByValue(int64(algValue))
 			if err != nil {
 				return nil, err
-			} else {
-				return alg, nil
 			}
-
+			return alg, nil
 		}
 	}
 	// ai, _ := h.protected[uint64(1)].(int)
 	// fmt.Println(fmt.Sprintf("getAlg else %+v %+v", h.protected, ai))
-	return nil, errors.New("Error fetching alg.")
+	return nil, errors.New("Error fetching alg")
 }
 
 
@@ -381,7 +381,7 @@ func getKeySizeForAlg(alg *generated.COSEAlgorithm) (keySize int, err error) {
 	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
 		keySize = 66
 	} else {
-		err = errors.New("alg not implemented.")
+		err = errors.New("alg not implemented")
 	}
 	return keySize, err
 }
@@ -400,7 +400,7 @@ func getExpectedArgsForAlg(alg *generated.COSEAlgorithm) (expectedKeyBitSize int
 		expectedKeyBitSize = 256
 		hash = crypto.SHA256
 	} else {
-		return -1, crypto.SHA256, errors.New("alg not implemented.")
+		return -1, crypto.SHA256, errors.New("alg not implemented")
 	}
 
 	return expectedKeyBitSize, hash, nil
