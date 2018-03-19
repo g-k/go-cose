@@ -44,4 +44,4 @@ goveralls:
 	go get github.com/mattn/goveralls
 
 ci: godep golint install coverage lint
-	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+	$(HOME)/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
