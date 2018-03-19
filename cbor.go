@@ -13,16 +13,17 @@ import (
 	codec "github.com/ugorji/go/codec"
 )
 
-// CBOREncode blah
-// TODO: use common encoder interfaces
-func CBOREncode(o interface{}) (b []byte, err error) {
+// Marshal returns the CBOR encoding of param o
+func Marshal(o interface{}) (b []byte, err error) {
 	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
 
 	err = enc.Encode(o)
 	return b, err
 }
-// CBORDecode blah
-func CBORDecode(b []byte) (o interface{}, err error) {
+// Unmarshal decodes CBOR bytes into param o
+// TODO: decode into object inplace to implement the more encoding interface func Unmarshal(data []byte, v interface{}) error
+// TODO: decode with readers for better interop in autograph
+func Unmarshal(b []byte) (o interface{}, err error) {
 	var dec *codec.Decoder = codec.NewDecoderBytes(b, GetCOSEHandle())
 
 	err = dec.Decode(&o)

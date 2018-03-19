@@ -909,7 +909,7 @@ func TestRustCoseExamples(t *testing.T) {
 // 	// Payload: XPI_PAYLOAD,
 // 	// XPI_SIGNATURE
 
-// 	decoded, err := CBORDecode(XPI_SIGNATURE[:])
+// 	decoded, err := Unmarshal(XPI_SIGNATURE[:])
 // 	fmt.Println(fmt.Sprintf("%+v", decoded))
 
 // 	assert.Nil(err)

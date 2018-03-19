@@ -23,7 +23,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	alg := GetAlgByNameOrPanic(signerInput.Protected.Alg)
 	external := util.HexToBytesOrDie(signerInput.External)
 
-	decoded, err := CBORDecode(util.HexToBytesOrDie(example.Output.Cbor))
+	decoded, err := Unmarshal(util.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
 	if ExpectCastToFail(example.Title) {
@@ -81,7 +81,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 		fmt.Sprintf("%s: signing wrong Hex Intermediate", example.Title))
 
 	// check cbor matches (will not match per message keys k match which depend on our RNGs)
-	// signed := strings.ToUpper(hex.EncodeToString(CBOREncode(output)))
+	// signed := strings.ToUpper(hex.EncodeToString(Marshal(output)))
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
 	// Verify our signature (round trip)

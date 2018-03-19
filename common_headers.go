@@ -49,13 +49,13 @@ func (h *Headers) EncodeProtected() (bstr []byte) {
 		return []byte("")
 	}
 
-	encoded, err := CBOREncode(CompressHeaders(h.protected))
+	encoded, err := Marshal(CompressHeaders(h.protected))
 	if err != nil {
-		log.Fatalf("CBOREncode error of protected headers %s", err)
+		log.Fatalf("Marshal error of protected headers %s", err)
 	}
 	return encoded
 }
-// DecodeProtected CBORDecodes from interface{}
+// DecodeProtected Unmarshals from interface{}
 func (h *Headers) DecodeProtected(o interface {}) (err error) {
 	b, ok := o.([]byte)
 	if !ok {
@@ -65,7 +65,7 @@ func (h *Headers) DecodeProtected(o interface {}) (err error) {
 		return nil
 	}
 
-	protected, err := CBORDecode(b)
+	protected, err := Unmarshal(b)
 	if err != nil {
 		return fmt.Errorf("error CBOR decoding protected header bytes; got %T", protected)
 	}
@@ -77,7 +77,7 @@ func (h *Headers) DecodeProtected(o interface {}) (err error) {
 	h.protected = protectedMap
 	return nil
 }
-// DecodeUnprotected CBORDecodes from interface{}
+// DecodeUnprotected Unmarshals from interface{}
 func (h *Headers) DecodeUnprotected(o interface {}) (err error) {
 	msgHeadersUnprotected, ok := o.(map[interface {}]interface {})
 	if !ok {
@@ -336,7 +336,7 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 	return decompressed
 }
 
-// getAlg returns the alg by label, int, or uint64 tag (as from CBORDecode)
+// getAlg returns the alg by label, int, or uint64 tag (as from Unmarshal)
 func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 	if tmp, ok := h.protected["alg"]; ok {
 		if algName, ok := tmp.(string); ok {

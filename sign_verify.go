@@ -82,7 +82,7 @@ func (m *SignMessage) SetHeaders(h *Headers) {
 }
 // SigStructure -
 func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeSigned []byte, err error) {
-	ToBeSigned, err = buildAndCBOREncodeSigStructure(
+	ToBeSigned, err = buildAndMarshalSigStructure(
 		m.headers.EncodeProtected(),
 		signature.headers.EncodeProtected(),
 		external,
@@ -137,7 +137,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 		//
 		// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 		//     byte string, using the encoding described in Section 14.
-		ToBeSigned, err := buildAndCBOREncodeSigStructure(
+		ToBeSigned, err := buildAndMarshalSigStructure(
 			m.headers.EncodeProtected(),
 			signature.headers.EncodeProtected(),
 			external,
@@ -197,7 +197,7 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		//
 		// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 		//     byte string, using the encoding described in Section 14.
-		ToBeSigned, err := buildAndCBOREncodeSigStructure(
+		ToBeSigned, err := buildAndMarshalSigStructure(
 			m.headers.EncodeProtected(),
 			signature.headers.EncodeProtected(),
 			external,

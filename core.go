@@ -181,7 +181,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 
 // imperative functions on byte slices level
 
-func buildAndCBOREncodeSigStructure(
+func buildAndMarshalSigStructure(
 	bodyProtected []byte,
 	signProtected []byte,
 	external []byte,
@@ -206,9 +206,9 @@ func buildAndCBOREncodeSigStructure(
 
 	// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 	//     byte string, using the encoding described in Section 14.
-	ToBeSigned, err = CBOREncode(sigStructure)
+	ToBeSigned, err = Marshal(sigStructure)
 	if err != nil {
-		return nil, fmt.Errorf("CBOREncode error encoding sigStructure: %s", err)
+		return nil, fmt.Errorf("Marshal error encoding sigStructure: %s", err)
 	}
 	return ToBeSigned, nil
 }

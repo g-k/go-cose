@@ -11,7 +11,7 @@ import (
 
 /// Tests for encoding and decoding go-cose objects to and from CBOR
 
-var CBOREncodeTestCases = []struct {
+var MarshalTestCases = []struct {
 	name string
 	input interface{}
 	output interface{}
@@ -86,12 +86,12 @@ var CBOREncodeTestCases = []struct {
 	// 	[]byte(""),
 	// },
 }
-func TestCBOREncode(t *testing.T) {
-	for _, testCase := range CBOREncodeTestCases {
+func TestMarshal(t *testing.T) {
+	for _, testCase := range MarshalTestCases {
 		t.Run(testCase.name, func (t *testing.T) {
 			assert := assert.New(t)
 
-			output, err := CBOREncode(testCase.input)
+			output, err := Marshal(testCase.input)
 			assert.Nil(err, fmt.Sprintf("%s failed", testCase.name))
 			assert.Equal(
 				testCase.output,
@@ -102,7 +102,7 @@ func TestCBOREncode(t *testing.T) {
 }
 
 
-var CBORDecodeTestCases = []struct {
+var UnmarshalTestCases = []struct {
 	name string
 	input []byte
 	output interface{}
@@ -238,12 +238,12 @@ var CBORDecodeTestCases = []struct {
 		},
 	},
 }
-func TestCBORDecode(t *testing.T) {
-	for _, testCase := range CBORDecodeTestCases {
+func TestUnmarshal(t *testing.T) {
+	for _, testCase := range UnmarshalTestCases {
 		t.Run(testCase.name, func (t *testing.T) {
 			assert := assert.New(t)
 
-			output, err := CBORDecode(testCase.input)
+			output, err := Unmarshal(testCase.input)
 			assert.Nil(err)
 
 			if reflect.TypeOf(testCase.output) != reflect.TypeOf(SignMessage{}) {
