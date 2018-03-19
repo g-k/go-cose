@@ -138,7 +138,7 @@ func LoadExamples(path string) []COSEWGExample {
 			continue
 		}
 
-		fmt.Println(fmt.Sprintf("Loading: %s", file.Name()))
+		// fmt.Println(fmt.Sprintf("Loading: %s", file.Name()))
 
 		var content, err = ioutil.ReadFile(filepath.Join(path, file.Name()))
 		if err != nil {

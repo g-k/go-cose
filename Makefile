@@ -5,6 +5,8 @@ install:
 	test -d test &&	mkdir -p test
 	cd test && git clone https://github.com/cose-wg/Examples.git cose-wg-examples || true
 	cd test && git clone https://github.com/franziskuskiefer/cose-rust.git || true
+	# github doesn't support git archive
+	# cd test && git archive --remote=https://github.com/mozilla/gecko-dev.git master security/manager/ssl/tests/unit/ | tar xvf -
 
 lint:
 	golint

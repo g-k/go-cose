@@ -2,6 +2,7 @@ package cose
 
 import (
 	"errors"
+	"crypto"
 	"fmt"
 	"log"
 	generated "github.com/g-k/go-cose/generated"
@@ -327,4 +328,80 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 
 	// fmt.Println(fmt.Printf("DECOMPRESSED %+v", decompressed))
 	return decompressed
+}
+
+
+func getAlg(h *COSEHeaders) (alg *generated.COSEAlgorithm, err error) {
+	if tmp, ok := h.protected["alg"]; ok {
+		if algName, ok := tmp.(string); ok {
+			// fmt.Println(fmt.Sprintf("get by alg name %+v", algName))
+			alg, err = GetAlgByName(algName)
+			if err != nil {
+				return nil, err
+			} else {
+				return alg, nil
+			}
+		}
+	} else if tmp, ok := h.protected[uint64(1)]; ok {
+		// fmt.Println(fmt.Sprintf("get by value int64? %T", tmp))
+		if algValue, ok := tmp.(int64); ok {
+			// fmt.Println(fmt.Sprintf("get by value int64? %+v", algValue))
+			alg, err = GetAlgByValue(algValue)
+			if err != nil {
+				return nil, err
+			} else {
+				return alg, nil
+			}
+
+		}
+	} else if tmp, ok := h.protected[int(1)]; ok {
+		// fmt.Println(fmt.Sprintf("get by value int? %T", tmp))
+		if algValue, ok := tmp.(int); ok {
+			// fmt.Println(fmt.Sprintf("get by value int? %+v", algValue))
+			alg, err = GetAlgByValue(int64(algValue))
+			if err != nil {
+				return nil, err
+			} else {
+				return alg, nil
+			}
+
+		}
+	}
+	// ai, _ := h.protected[uint64(1)].(int)
+	// fmt.Println(fmt.Sprintf("getAlg else %+v %+v", h.protected, ai))
+	return nil, errors.New("Error fetching alg.")
+}
+
+
+func getKeySizeForAlg(alg *generated.COSEAlgorithm) (keySize int, err error) {
+	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
+		keySize = 32
+	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
+		keySize = 48
+	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
+		keySize = 66
+	} else {
+		err = errors.New("alg not implemented.")
+	}
+	return keySize, err
+}
+
+func getExpectedArgsForAlg(alg *generated.COSEAlgorithm) (expectedKeyBitSize int, hash crypto.Hash, err error) {
+	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
+		expectedKeyBitSize = 256
+		hash = crypto.SHA256
+	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
+		expectedKeyBitSize = 384
+		hash = crypto.SHA384
+	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
+		expectedKeyBitSize = 521  // i.e. P-521
+		hash = crypto.SHA512
+	} else if alg.Value == GetAlgByNameOrPanic("PS256").Value {
+		expectedKeyBitSize = 256
+		hash = crypto.SHA256
+	} else {
+		return -1, crypto.SHA256, errors.New("alg not implemented.")
+	}
+
+	return expectedKeyBitSize, hash, nil
 }

@@ -2,59 +2,80 @@
 package cose
 
 import (
-	// "bytes"
 	"strings"
-	// "crypto"
 	"math/rand"
-	"fmt"
-	"testing"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
+	"testing"
 	"github.com/g-k/go-cose/util"
 	"github.com/stretchr/testify/assert"
 )
 
-func ExpectCastToFail(title string) (shouldFail bool) {
-	return title == "sign-pass-03: Remove CBOR Tag" || title == "sign-fail-01: Wrong CBOR Tag"
-}
-
-func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
+func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	assert := assert.New(t)
 	privateKey := util.LoadPrivateKey(&example)
+
+	// testcases only include one signature
+	assert.Equal(len(example.Input.Sign.Signers), 1)
+
+	signerInput := example.Input.Sign.Signers[0]
+	alg := GetAlgByNameOrPanic(signerInput.Protected.Alg)
+	external := util.HexToBytesOrDie(signerInput.External)
 
 	decoded, err := CBORDecode(util.HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
-	// fmt.Println(fmt.Sprintf("Decoded: %+v", decoded))
-
-	// ugorji/go/codec won't use the Ext to decode without the right CBOR tag
 	if ExpectCastToFail(example.Title) {
 		return
 	}
 
-	msg, ok := decoded.(COSESignMessage)
+	message, ok := decoded.(COSESignMessage)
 	assert.True(ok, fmt.Sprintf("%s: Error casting example CBOR to COSESignMessage", example.Title))
 
-	// fmt.Println(fmt.Sprintf("Decoded after cast: %+v", msg))
+	// TODO: pass alg to signer?
+	signer, err := NewCOSESigner(&privateKey)
+	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
 
-	// Test Verify
-	ok, err = Verify(&msg, &privateKey.PublicKey, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+	verifier := signer.Verifier(alg)
+	assert.Nil(err, fmt.Sprintf("%s: Error creating verifier", example.Title))
+
+	// Test Verify - signatures CBOR decoded from example
+	assert.NotNil(message.signatures[0].signature)
+	err = message.Verify(external, &VerifyOpts{
+		GetVerifier: func (index int, signature COSESignature) (COSEVerifier, error) {
+			return *verifier, nil
+		},
+	})
 	if example.Fail {
-		assert.False(ok, fmt.Sprintf("%s: verifying signature did not fail", example.Title))
-		assert.NotNil(err, fmt.Sprintf("%s: nil error from signature verification failure", example.Title))
+	 	assert.NotNil(err, fmt.Sprintf("%s: verifying signature did not fail. Got nil instead of error from signature verification failure", example.Title))
+
+		// signing should not necessarily fail and the
+		// intermediates are wrong for fail test cases
 		return
 	}
-	assert.True(ok, fmt.Sprintf("%s: verifying signature failed", example.Title))
-	assert.Nil(err, fmt.Sprintf("%s: Error verifying signature", example.Title))
+	assert.Nil(err, fmt.Sprintf("%s: error verifying signature %+v", example.Title, err))
 
 	// Test Sign
-	// NB: for the fail test cases, signing should not necessarily
-	// fail and the intermediates are wrong
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
-	output, err, ToBeSigned := Sign(&msg, &privateKey, randReader, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
+
+	_, hash, err := getExpectedArgsForAlg(alg)
+	assert.Nil(err, fmt.Sprintf("%s: getExpectedArgsForAlg failed with err %s", example.Title, err))
+
+	// clear the signature
+	message.signatures[0].signature = nil
+
+	err = message.Sign(randReader, external, SignOpts{
+		HashFunc: hash,
+		GetSigner: func(index int, signature COSESignature) (COSESigner, error) {
+			return *signer, nil
+		},
+	})
 	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 
 	// check intermediate
+	ToBeSigned, err := message.SigStructure(external, &message.signatures[0])
+	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
 		strings.ToUpper(hex.EncodeToString(ToBeSigned)),
 		fmt.Sprintf("%s: signing wrong Hex Intermediate", example.Title))
@@ -64,9 +85,8 @@ func SignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
 	// Verify our signature (round trip)
-	ok, err = Verify(output, &privateKey.PublicKey, util.HexToBytesOrDie(example.Input.Sign.Signers[0].External))
-	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", example.Title, err))
-	assert.True(ok, fmt.Sprintf("%s: round trip error signature verification", example.Title))
+	err = verifier.Verify(hashSigStructure(ToBeSigned, hash), message.signatures[0].signature)
+	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed with err %s", example.Title, err))
 }
 
 var SkipExampleTitles = map[string]bool{
@@ -87,21 +107,26 @@ var SkipExampleTitles = map[string]bool{
 	"ECDSA-sig-01: ECDSA - P-256 w/ SHA-512 - implicit": true,  // ecdsa-sig-04.json
 }
 
+func ExpectCastToFail(title string) (shouldFail bool) {
+	// (g-k) these decode but not to COSESignMessages since I
+	// haven't found a way to get ugorji/go/codec to use our
+	// extension to decode without the right CBOR tag
+	return title == "sign-pass-03: Remove CBOR Tag" || title == "sign-fail-01: Wrong CBOR Tag"
+}
+
 func TestWGExamples(t *testing.T) {
 	examples := append(
 		util.LoadExamples("./test/cose-wg-examples/sign-tests"),
 		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...
 	)
 
-
 	for _, example := range examples {
-		// fmt.Println(fmt.Sprintf("Example: %+v", example))
-
 		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func (t *testing.T) {
 			if v, ok := SkipExampleTitles[example.Title]; ok && v {
 				return
 			}
-			SignsAndVerifies(t, example)
+			// fmt.Println(fmt.Sprintf("%s", example.Title))
+			WGExampleSignsAndVerifies(t, example)
 		})
 	}
 }
