@@ -41,7 +41,7 @@ godep:
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 goveralls:
-	go get github.com/mattn/goveralls
+	go get -u github.com/mattn/goveralls
 
-ci: godep golint install coverage lint
-	$(HOME)/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
+ci: godep golint goveralls install coverage lint
+	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
