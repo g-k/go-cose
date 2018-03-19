@@ -901,49 +901,49 @@ func TestRustCoseExamples(t *testing.T) {
 	}
 }
 
-func TestRustCoseVerifyXPI(t *testing.T) {
-	assert := assert.New(t)
+// func TestRustCoseVerifyXPI(t *testing.T) {
+// 	assert := assert.New(t)
 
-	// Doesn't check certs
-	// Title: "test_cose_verify_xpi_signature",
-	// Payload: XPI_PAYLOAD,
-	// XPI_SIGNATURE
+// 	// Doesn't check certs
+// 	// Title: "test_cose_verify_xpi_signature",
+// 	// Payload: XPI_PAYLOAD,
+// 	// XPI_SIGNATURE
 
-	decoded, err := CBORDecode(XPI_SIGNATURE[:])
-	fmt.Println(fmt.Sprintf("%+v", decoded))
+// 	decoded, err := CBORDecode(XPI_SIGNATURE[:])
+// 	fmt.Println(fmt.Sprintf("%+v", decoded))
 
-	assert.Nil(err)
+// 	assert.Nil(err)
 
-	// test::setup();
-	// assert!(verify_signature(XPI_PAYLOAD, test::XPI_SIGNATURE.to_vec()).is_ok
+// 	// test::setup();
+// 	// assert!(verify_signature(XPI_PAYLOAD, test::XPI_SIGNATURE.to_vec()).is_ok
 
-	// pub fn verify_signature(payload: &[u8], cose_signature: Vec<u8>) -> Result<(), CoseError> {
+// 	// pub fn verify_signature(payload: &[u8], cose_signature: Vec<u8>) -> Result<(), CoseError> {
 
-	// // Parse COSE signature.
-	// let cose_signatures = decode_signature(&cose_signature, payload)?;
+// 	// // Parse COSE signature.
+// 	// let cose_signatures = decode_signature(&cose_signature, payload)?;
 
 
-	// if cose_signatures.len() < 1 {
-	//     return Err(CoseError::MalformedInput);
-	// }
+// 	// if cose_signatures.len() < 1 {
+// 	//     return Err(CoseError::MalformedInput);
+// 	// }
 
-	// 	for signature in cose_signatures {
-	// 		let signature_algorithm = &signature.signature_type;
-	// 		let signature_bytes = &signature.signature;
-	// 		let real_payload = &signature.to_verify;
+// 	// 	for signature in cose_signatures {
+// 	// 		let signature_algorithm = &signature.signature_type;
+// 	// 		let signature_bytes = &signature.signature;
+// 	// 		let real_payload = &signature.to_verify;
 
-	// 		// Verify the parsed signatures.
-	// 		// We ignore the certs field here because we don't verify the certificate.
-	// 		let verify_result = nss::verify_signature(
-	// 			&signature_algorithm,
-	// 			&signature.signer_cert,
-	// 			real_payload,
-	// 			signature_bytes,
-	// 		);
-	// 		if !verify_result.is_ok() {
-	// 			return Err(CoseError::VerificationFailed);
-	// 		}
-	// 	}
-	// 	Ok(())
-	// }
-}
+// 	// 		// Verify the parsed signatures.
+// 	// 		// We ignore the certs field here because we don't verify the certificate.
+// 	// 		let verify_result = nss::verify_signature(
+// 	// 			&signature_algorithm,
+// 	// 			&signature.signer_cert,
+// 	// 			real_payload,
+// 	// 			signature_bytes,
+// 	// 		);
+// 	// 		if !verify_result.is_ok() {
+// 	// 			return Err(CoseError::VerificationFailed);
+// 	// 		}
+// 	// 	}
+// 	// 	Ok(())
+// 	// }
+// }
