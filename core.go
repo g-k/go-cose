@@ -109,7 +109,6 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 	default:
 		return nil, errors.New("Unrecognized private key type")
 	}
-	return
 }
 // Verifier returns a Verifier using the Signers public key and a func that returns whether the key is valid?
 func (s *Signer) Verifier(
