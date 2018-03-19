@@ -37,4 +37,8 @@ iana-codegen:
 godep:
 	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
+goveralls:
+	go get github.com/mattn/goveralls
+
 ci: godep install coverage lint
+	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
