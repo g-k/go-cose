@@ -5,3 +5,5 @@ go:
   - "1.10"
 script:
   make ci
+notifications:
+  email: false
