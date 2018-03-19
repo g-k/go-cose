@@ -15,7 +15,7 @@ coverage:
 	go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 what-todo:
-	git grep -i TODO
+	rg -g '**/*.go' -i TODO
 
 util/data:
 	mkdir -p util/data
