@@ -1,6 +1,3 @@
-# go-cose
-WIP
+# go-cose (WIP)
 
-
-disable tagging?
-support more message types?
+[![Build Status](https://travis-ci.org/g-k/go-cose.svg?branch=master)](https://travis-ci.org/g-k/go-cose)
