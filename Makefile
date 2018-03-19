@@ -17,7 +17,6 @@ coverage:
 what-todo:
 	git grep -i TODO
 
-
 util/data:
 	mkdir -p util/data
 
@@ -34,3 +33,5 @@ iana-csvs: util/data/tags.csv util/data/algorithms.csv util/data/elliptic-curves
 
 iana-codegen:
 	go run util/cmd/from_csv.go
+
+ci: install coverage lint
