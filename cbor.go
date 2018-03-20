@@ -122,12 +122,12 @@ func GetCOSEHandle() (h *codec.CborHandle) {
 	// COSE Message CBOR tags from
 	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
 
-	// h.SetInterfaceExt(reflect.TypeOf(COSEEncrypt0Message{}), 16, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(COSEMAC0Message{}), 17, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(COSESign1Message{}), 18, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(Encrypt0Message{}), 16, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(MAC0Message{}), 17, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(Sign1Message{}), 18, cExt)
 
-	// h.SetInterfaceExt(reflect.TypeOf(COSEEncryptMessage{}), 96, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(COSEMACMessage{}), 97, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(EncryptMessage{}), 96, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(MACMessage{}), 97, cExt)
 	h.SetInterfaceExt(reflect.TypeOf(SignMessage{}), 98, cExt)
 
 	return h
