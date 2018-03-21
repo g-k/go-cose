@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// Marshal returns the CBOR encoding of param o
+// Marshal returns the CBOR []byte encoding of param o
 func Marshal(o interface{}) (b []byte, err error) {
 	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
 
@@ -14,7 +14,7 @@ func Marshal(o interface{}) (b []byte, err error) {
 	return b, err
 }
 
-// Unmarshal decodes CBOR bytes into param o
+// Unmarshal returns the CBOR decoding of a []byte into param o
 // TODO: decode into object inplace to implement the more encoding interface func Unmarshal(data []byte, v interface{}) error
 // TODO: decode with readers for better interop in autograph
 func Unmarshal(b []byte) (o interface{}, err error) {
@@ -24,10 +24,14 @@ func Unmarshal(b []byte) (o interface{}, err error) {
 	return o, err
 }
 
-// Ext a codec.cbor extension
+// Ext is a codec.cbor extension to handle custom (de)serialization of
+// types to/from another interface{} value
+//
+// https://godoc.org/github.com/ugorji/go/codec#InterfaceExt
 type Ext struct{}
 
-// ConvertExt blah
+// ConvertExt converts a value into a simpler interface for easier
+// encoding
 func (x Ext) ConvertExt(v interface{}) interface{} {
 	message, ok := v.(*SignMessage)
 	if !ok {
@@ -51,7 +55,10 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 	}
 }
 
-// UpdateExt blah
+// UpdateExt updates a value from a simpler interface for easy
+// decoding dest is always a point
+//
+// Note: dst is always a pointer kind to the registered extension type.
 func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	var src, vok = v.([]interface{})
 	if !vok {
@@ -97,8 +104,8 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	*destMessage = *message
 }
 
-// GetCOSEHandle returns a codec.CborHandle with Extensions registered
-// for the COSE SignMessage CBOR Tag (98)
+// GetCOSEHandle registers Extensions to support COSE message types
+// for their CBOR tags and returns a codec.CborHandle
 func GetCOSEHandle() (h *codec.CborHandle) {
 	h = new(codec.CborHandle)
 	h.IndefiniteLength = false // no streaming
