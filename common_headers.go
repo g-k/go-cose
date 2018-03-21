@@ -144,15 +144,6 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	}
 }
 
-// GetCommonHeaderValue
-// func GetCommonHeaderValue(label string, value string) (tag int, err error) {
-// 	switch label {
-// 	case "alg":
-// 		GetAlgTag(value)
-// 	default:
-// 	}
-// }
-
 // GetAlgTag returns the CBOR tag for the alg label value
 //
 //
