@@ -34,7 +34,6 @@ func Unmarshal(b []byte) (o interface{}, err error) {
 type Ext struct{}
 // ConvertExt blah
 func (x Ext) ConvertExt(v interface{}) interface{} {
-	fmt.Println(fmt.Printf("ENCODING %v", v))
 	message, ok := v.(*SignMessage)
 	if !ok {
 		panic(fmt.Sprintf("unsupported format expecting to encode SignMessage; got %T", v))
@@ -60,8 +59,6 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 // UpdateExt blah
 // TODO: decompress headers too?
 func (x Ext) UpdateExt(dest interface{}, v interface{}) {
-	// fmt.Println(fmt.Sprintf("v: %x", v))
-
 	var src, vok = v.([]interface{})
 	if !vok {
 		panic(fmt.Sprintf("unsupported format expecting to decode from []interface{}; got %T", v))
@@ -69,7 +66,6 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	if len(src) != 4 {
 		panic(fmt.Sprintf("can only decode SignMessage with 4 fields; got %d", len(src)))
 	}
-	// fmt.Println(fmt.Sprintf("src[0]: %+v %T", src[0], src[0]))
 
 	var msgHeaders = NewHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
 	err := msgHeaders.DecodeProtected(src[0])
@@ -80,7 +76,6 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	if err != nil {
 		panic(fmt.Sprintf("error decoding unprotected header map; got %s", err))
 	}
-	// fmt.Println(fmt.Printf("DECODING: %T %+v", msgHeadersUnprotected, msgHeadersUnprotected))
 
 	var payload, pok = src[2].([]byte)
 	if !pok {
@@ -100,7 +95,6 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 		sigT.Decode(sig)
 		message.AddSignature(sigT)
 	}
-	// fmt.Println(fmt.Printf("DECODED sigs: %T %+v", message.signatures, message.signatures))
 
 	destMessage, ok := dest.(*SignMessage)
 	if !ok {

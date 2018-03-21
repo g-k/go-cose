@@ -84,9 +84,9 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 			return nil, fmt.Errorf("ecdsa.Sign error %s", err)
 		}
 
-		// assert r and s are the same length will be the same length
-		// as the length of the key used for the signature process
-		// fmt.Println(fmt.Printf("\nr: %+v\ns: %+v\n %+x", r, s, digest))
+		// TODO: assert r and s are the same length will be
+		// the same length as the length of the key used for
+		// the signature process
 
 		// The signature is encoded by converting the integers into
 		// byte strings of the same length as the key size.  The

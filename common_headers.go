@@ -38,9 +38,8 @@ func (h *Headers) EncodeUnprotected() (encoded map[interface{}]interface{}) {
 	return CompressHeaders(h.unprotected)
 }
 // EncodeProtected can panic
+// TODO: check for dups in maps
 func (h *Headers) EncodeProtected() (bstr []byte) {
-	// TODO: check for dups in maps
-	// fmt.Println(fmt.Printf("EncodeProtected\n%T %+v %v", h.protected, h.protected, h.protected == nil))
 	if h == nil {
 		panic("Cannot encode nil Headers")
 	}
@@ -347,9 +346,7 @@ func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 			return alg, nil
 		}
 	} else if tmp, ok := h.protected[uint64(1)]; ok {
-		// fmt.Println(fmt.Sprintf("get by value int64? %T", tmp))
 		if algValue, ok := tmp.(int64); ok {
-			// fmt.Println(fmt.Sprintf("get by value int64? %+v", algValue))
 			alg, err = GetAlgByValue(algValue)
 			if err != nil {
 				return nil, err
@@ -357,9 +354,7 @@ func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 			return alg, nil
 		}
 	} else if tmp, ok := h.protected[int(1)]; ok {
-		// fmt.Println(fmt.Sprintf("get by value int? %T", tmp))
 		if algValue, ok := tmp.(int); ok {
-			// fmt.Println(fmt.Sprintf("get by value int? %+v", algValue))
 			alg, err = GetAlgByValue(int64(algValue))
 			if err != nil {
 				return nil, err
@@ -367,8 +362,6 @@ func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 			return alg, nil
 		}
 	}
-	// ai, _ := h.protected[uint64(1)].(int)
-	// fmt.Println(fmt.Sprintf("getAlg else %+v %+v", h.protected, ai))
 	return nil, errors.New("Error fetching alg")
 }
 

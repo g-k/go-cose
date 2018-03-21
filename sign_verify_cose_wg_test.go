@@ -125,7 +125,6 @@ func TestWGExamples(t *testing.T) {
 			if v, ok := SkipExampleTitles[example.Title]; ok && v {
 				return
 			}
-			// fmt.Println(fmt.Sprintf("%s", example.Title))
 			WGExampleSignsAndVerifies(t, example)
 		})
 	}
