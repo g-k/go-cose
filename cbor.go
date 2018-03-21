@@ -52,7 +52,6 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 }
 
 // UpdateExt blah
-// TODO: decompress headers too?
 func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	var src, vok = v.([]interface{})
 	if !vok {
