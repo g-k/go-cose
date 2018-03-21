@@ -1,16 +1,11 @@
 package cose
 
 import (
-	// "bytes"
-	// "strings"
 	"crypto/x509"
 	"math/rand"
 	"fmt"
 	"testing"
 	"errors"
-	// "encoding/binary"
-	// "encoding/hex"
-	// "github.com/g-k/go-cose/util"
 	generated "github.com/g-k/go-cose/generated"
 	"github.com/stretchr/testify/assert"
 )
