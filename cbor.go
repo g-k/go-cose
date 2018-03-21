@@ -4,10 +4,6 @@ package cose
 
 
 import (
-	// "bytes"
-	// "math/big"
-	// "crypto"
-	// "crypto/ecdsa"
 	"fmt"
 	"reflect"
 	codec "github.com/ugorji/go/codec"
