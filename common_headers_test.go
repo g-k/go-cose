@@ -1,35 +1,33 @@
-
 package cose
 
 import (
 	"fmt"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-
 var CompressionTestCases = []struct {
-	name string
-	input map[interface {}]interface{}
-	intermediate map[interface {}]interface{}
+	name         string
+	input        map[interface{}]interface{}
+	intermediate map[interface{}]interface{}
 }{
 	{
 		"all empty",
-		map[interface {}]interface{}{},
-		map[interface {}]interface{}{},
+		map[interface{}]interface{}{},
+		map[interface{}]interface{}{},
 	},
 	{
 		"all keys",
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"counter signature": []int{1, 2, -3},
-			"Partial IV": "foo",
-			"alg": true,
-			"IV": nil,
-			"content type": false,
-			"kid": -1,
-			"crit": true,
+			"Partial IV":        "foo",
+			"alg":               true,
+			"IV":                nil,
+			"content type":      false,
+			"kid":               -1,
+			"crit":              true,
 		},
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			3: false,
 			1: true,
 			2: true,
@@ -41,41 +39,42 @@ var CompressionTestCases = []struct {
 	},
 	{
 		"unknown key",
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"unknown": -1,
 		},
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"unknown": -1,
 		},
 	},
 	{
 		"known key wrong case \"ALG\"",
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"ALG": 1,
 		},
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"ALG": 1,
 		},
 	},
 	{
 		"supported alg value \"ES256\" compressed",
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"alg": "ES256",
 		},
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			1: -7,
 		},
 	},
 	{
 		"supported alg value \"PS256\" compressed",
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			"alg": "PS256",
 		},
-		map[interface {}]interface{}{
+		map[interface{}]interface{}{
 			1: -37,
 		},
 	},
 }
+
 func TestHeaderCompressionRoundTrip(t *testing.T) {
 	for _, testCase := range CompressionTestCases {
 		assert := assert.New(t)
@@ -96,7 +95,7 @@ func TestHeaderCompressionRoundTrip(t *testing.T) {
 func TestHeaderCompressionDoesNotDecompressUnknownTag(t *testing.T) {
 	assert := assert.New(t)
 
-	compressed := map[interface {}]interface{}{
+	compressed := map[interface{}]interface{}{
 		777: 1,
 	}
 	assert.Equal(

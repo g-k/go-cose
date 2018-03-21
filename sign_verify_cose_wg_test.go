@@ -1,15 +1,14 @@
-
 package cose
 
 import (
-	"strings"
-	"math/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"testing"
 	"github.com/g-k/go-cose/util"
 	"github.com/stretchr/testify/assert"
+	"math/rand"
+	"strings"
+	"testing"
 )
 
 func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
@@ -43,12 +42,12 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
 	// Test Verify - signatures CBOR decoded from example
 	assert.NotNil(message.signatures[0].signature)
 	err = message.Verify(external, &VerifyOpts{
-		GetVerifier: func (index int, signature Signature) (Verifier, error) {
+		GetVerifier: func(index int, signature Signature) (Verifier, error) {
 			return *verifier, nil
 		},
 	})
 	if example.Fail {
-	 	assert.NotNil(err, fmt.Sprintf("%s: verifying signature did not fail. Got nil instead of error from signature verification failure", example.Title))
+		assert.NotNil(err, fmt.Sprintf("%s: verifying signature did not fail. Got nil instead of error from signature verification failure", example.Title))
 
 		// signing should not necessarily fail and the
 		// intermediates are wrong for fail test cases
@@ -101,10 +100,10 @@ var SkipExampleTitles = map[string]bool{
 	"ECDSA-01: ECDSA - P-256 w/ SHA-512": true, // ecdsa-04.json
 
 	// unsupported message types
-	"ECDSA-01: ECDSA - P-256 - sign0": true, // ecdsa-sig-01.json
-	"ECDSA-sig-02: ECDSA - P-384 - sign1": true,  // ecdsa-sig-02.json
-	"ECDSA-03: ECDSA - P-512 - sign0": true,  // ecdsa-sig-03.json
-	"ECDSA-sig-01: ECDSA - P-256 w/ SHA-512 - implicit": true,  // ecdsa-sig-04.json
+	"ECDSA-01: ECDSA - P-256 - sign0":                   true, // ecdsa-sig-01.json
+	"ECDSA-sig-02: ECDSA - P-384 - sign1":               true, // ecdsa-sig-02.json
+	"ECDSA-03: ECDSA - P-512 - sign0":                   true, // ecdsa-sig-03.json
+	"ECDSA-sig-01: ECDSA - P-256 w/ SHA-512 - implicit": true, // ecdsa-sig-04.json
 }
 
 func ExpectCastToFail(title string) (shouldFail bool) {
@@ -117,11 +116,11 @@ func ExpectCastToFail(title string) (shouldFail bool) {
 func TestWGExamples(t *testing.T) {
 	examples := append(
 		util.LoadExamples("./test/cose-wg-examples/sign-tests"),
-		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...
+		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...,
 	)
 
 	for _, example := range examples {
-		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func (t *testing.T) {
+		t.Run(fmt.Sprintf("Example: %s %v", example.Title, example.Fail), func(t *testing.T) {
 			if v, ok := SkipExampleTitles[example.Title]; ok && v {
 				return
 			}

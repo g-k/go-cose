@@ -1,35 +1,37 @@
-
 package cose
 
 import (
-	"errors"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"io"
 )
 
 // Signature https://tools.ietf.org/html/rfc8152#section-4.1
 type Signature struct {
-	headers *Headers
+	headers   *Headers
 	signature []byte
 }
+
 // NewSignature -
 func NewSignature() (s *Signature) {
 	return &Signature{
 		headers: &Headers{
-			protected: map[interface{}]interface{}{},
+			protected:   map[interface{}]interface{}{},
 			unprotected: map[interface{}]interface{}{},
 		},
 		signature: nil,
 	}
 }
+
 // SetHeaders -
 func (s *Signature) SetHeaders(h *Headers) {
 	s.headers = h
 }
+
 // Decode -
-func (s *Signature) Decode(o interface {}) {
-	array, ok := o.([]interface {})
+func (s *Signature) Decode(o interface{}) {
+	array, ok := o.([]interface{})
 	if !ok {
 		panic(fmt.Sprintf("error decoding sigArray; got %T", array))
 	}
@@ -53,33 +55,36 @@ func (s *Signature) Decode(o interface {}) {
 	s.signature = signature
 }
 
-
 // SignMessage https://tools.ietf.org/html/rfc8152#section-4.1
 type SignMessage struct {
-	headers *Headers
-	payload []byte
+	headers    *Headers
+	payload    []byte
 	signatures []Signature
 }
+
 // NewSignMessage -
 func NewSignMessage(payload []byte) (msg SignMessage) {
 	msg = SignMessage{
 		headers: &Headers{
-			protected: map[interface{}]interface{}{},
+			protected:   map[interface{}]interface{}{},
 			unprotected: map[interface{}]interface{}{},
 		},
-		payload: payload,
+		payload:    payload,
 		signatures: []Signature{},
 	}
 	return msg
 }
+
 // AddSignature -
 func (m *SignMessage) AddSignature(s *Signature) {
 	m.signatures = append(m.signatures, *s)
 }
+
 // SetHeaders -
 func (m *SignMessage) SetHeaders(h *Headers) {
 	m.headers = h
 }
+
 // SigStructure -
 func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeSigned []byte, err error) {
 	ToBeSigned, err = buildAndMarshalSigStructure(
@@ -89,6 +94,7 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 		m.payload)
 	return
 }
+
 // SignatureDigest -
 func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (digest []byte, err error) {
 	ToBeSigned, err := m.SigStructure(external, signature)
@@ -109,7 +115,6 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 
 	return digest, err
 }
-
 
 // Signing and Verification Process
 // https://tools.ietf.org/html/rfc8152#section-4.4
@@ -176,10 +181,11 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 	}
 	return nil
 }
+
 // Verify - verifies all signatures on the SignMessage
 func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 	if m.signatures == nil {
-		return nil  // Nothing to check
+		return nil // Nothing to check
 	}
 	// TODO: take a func for a signature kid that returns a key or not?
 

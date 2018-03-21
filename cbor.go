@@ -1,12 +1,9 @@
-
-
 package cose
-
 
 import (
 	"fmt"
-	"reflect"
 	codec "github.com/ugorji/go/codec"
+	"reflect"
 )
 
 // Marshal returns the CBOR encoding of param o
@@ -16,6 +13,7 @@ func Marshal(o interface{}) (b []byte, err error) {
 	err = enc.Encode(o)
 	return b, err
 }
+
 // Unmarshal decodes CBOR bytes into param o
 // TODO: decode into object inplace to implement the more encoding interface func Unmarshal(data []byte, v interface{}) error
 // TODO: decode with readers for better interop in autograph
@@ -28,6 +26,7 @@ func Unmarshal(b []byte) (o interface{}, err error) {
 
 // Ext a codec.cbor extension
 type Ext struct{}
+
 // ConvertExt blah
 func (x Ext) ConvertExt(v interface{}) interface{} {
 	message, ok := v.(*SignMessage)
@@ -63,7 +62,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("can only decode SignMessage with 4 fields; got %d", len(src)))
 	}
 
-	var msgHeaders = NewHeaders(map[interface {}] interface{}{}, map[interface {}] interface{}{})
+	var msgHeaders = NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
 	err := msgHeaders.DecodeProtected(src[0])
 	if err != nil {
 		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
@@ -82,7 +81,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	var message = &m
 	message.SetHeaders(msgHeaders)
 
-	var sigs, sok = src[3].([]interface {})
+	var sigs, sok = src[3].([]interface{})
 	if !sok {
 		panic(fmt.Sprintf("error decoding sigs; got %T", src[3]))
 	}
@@ -99,13 +98,12 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	*destMessage = *message
 }
 
-
 // GetCOSEHandle returns a codec.CborHandle with Extensions registered
 // for the COSE SignMessage CBOR Tag (98)
 func GetCOSEHandle() (h *codec.CborHandle) {
 	h = new(codec.CborHandle)
-	h.IndefiniteLength = false  // no streaming
-	h.Canonical = true // sort map keys
+	h.IndefiniteLength = false // no streaming
+	h.Canonical = true         // sort map keys
 
 	var cExt Ext
 

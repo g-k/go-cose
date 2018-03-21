@@ -1,19 +1,16 @@
-
-
 package cose
 
-
 import (
-	"errors"
 	"bytes"
-	"math/big"
 	"crypto"
-	"crypto/rsa"
 	"crypto/ecdsa"
+	"crypto/rsa"
+	"errors"
 	"fmt"
-	"log"
-	"io"
 	generated "github.com/g-k/go-cose/generated"
+	"io"
+	"log"
+	"math/big"
 )
 
 const (
@@ -34,6 +31,7 @@ const (
 type Signer struct {
 	privateKey crypto.PrivateKey
 }
+
 // NewSigner checks whether the privateKey is supported and returns a new cose.Signer
 func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 	switch privateKey.(type) {
@@ -48,6 +46,7 @@ func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 		privateKey: privateKey,
 	}, nil
 }
+
 // Public returns the crypto.PublicKey for the Signer's privateKey
 func (s *Signer) Public() (publicKey crypto.PublicKey) {
 	switch key := s.privateKey.(type) {
@@ -60,14 +59,16 @@ func (s *Signer) Public() (publicKey crypto.PublicKey) {
 	}
 	return
 }
+
 // SignOpts are options for cose.Signer.Sign
 //
 // HashFunc is the crypto.Hash to apply to the SigStructure
 // func GetSigner returns the cose.Signer or an error for the
 type SignOpts struct {
-	HashFunc crypto.Hash
+	HashFunc  crypto.Hash
 	GetSigner func(index int, signature Signature) (Signer, error)
 }
+
 // Sign returns a byte slice of the COSE signature
 func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature []byte, err error) {
 	switch key := s.privateKey.(type) {
@@ -96,7 +97,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 		// string that is the resulting signature.
 		curveBits := key.Curve.Params().BitSize
 		keyBytes := curveBits / 8
-		if curveBits % 8 > 0 {
+		if curveBits%8 > 0 {
 			keyBytes++
 		}
 
@@ -110,6 +111,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 		return nil, errors.New("Unrecognized private key type")
 	}
 }
+
 // Verifier returns a Verifier using the Signers public key and a func that returns whether the key is valid?
 func (s *Signer) Verifier(
 	alg *generated.COSEAlgorithm,
@@ -123,20 +125,22 @@ func (s *Signer) Verifier(
 	}
 }
 
-
 // Verifier -
 type Verifier struct {
 	publicKey crypto.PublicKey
-	opts VerifierOpts
+	opts      VerifierOpts
 }
+
 // VerifierOpts -
 type VerifierOpts struct {
 	alg *generated.COSEAlgorithm
 }
+
 // VerifyOpts -
 type VerifyOpts struct {
 	GetVerifier func(index int, signature Signature) (Verifier, error)
 }
+
 // Verify returns nil for success or an error
 func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	switch key := v.publicKey.(type) {
@@ -157,7 +161,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		}
 
 		// r and s from sig
-		if len(signature) != 2 * keySize {
+		if len(signature) != 2*keySize {
 			return fmt.Errorf("invalid signature length: %d", len(signature))
 		}
 
@@ -174,9 +178,6 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	}
 	return
 }
-
-
-
 
 // imperative functions on byte slices level
 
@@ -214,7 +215,7 @@ func buildAndMarshalSigStructure(
 
 func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte) {
 	hasher := hash.New()
-	_, _ = hasher.Write(ToBeSigned)  // Write() on hash never fails
+	_, _ = hasher.Write(ToBeSigned) // Write() on hash never fails
 	digest = hasher.Sum(nil)
 	return digest
 }
@@ -229,7 +230,7 @@ func I2OSP(b *big.Int, n int) []byte {
 	os := b.Bytes()
 	if n > len(os) {
 		var buf bytes.Buffer
-		buf.Write(make([]byte, n - len(os)))	// prepend 0s
+		buf.Write(make([]byte, n-len(os))) // prepend 0s
 		buf.Write(os)
 		return buf.Bytes()
 	}

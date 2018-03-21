@@ -1,42 +1,46 @@
 package cose
 
 import (
-	"errors"
 	"crypto"
+	"errors"
 	"fmt"
-	"log"
 	generated "github.com/g-k/go-cose/generated"
+	"log"
 )
-
 
 // Headers - maps of protected and unprotected tags
 type Headers struct {
-	protected map[interface{}]interface{}
+	protected   map[interface{}]interface{}
 	unprotected map[interface{}]interface{}
 }
+
 // NewHeaders -
 // TODO: replace if this doesn't do validation
 func NewHeaders(
 	protected map[interface{}]interface{},
 	unprotected map[interface{}]interface{}) (h *Headers) {
 	return &Headers{
-		protected: protected,
+		protected:   protected,
 		unprotected: unprotected,
 	}
 }
+
 // MarshalBinary serializes the headers for CBOR (untagged)
 func (h *Headers) MarshalBinary() (data []byte, err error) {
 	// TODO: include unprotected?
 	return h.EncodeProtected(), nil
 }
+
 // UnmarshalBinary not implemented; panics
 func (h *Headers) UnmarshalBinary(data []byte) (err error) {
 	panic("unsupported Headers.UnmarshalBinary")
 }
+
 // EncodeUnprotected returns headers with shortened tags
 func (h *Headers) EncodeUnprotected() (encoded map[interface{}]interface{}) {
 	return CompressHeaders(h.unprotected)
 }
+
 // EncodeProtected can panic
 // TODO: check for dups in maps
 func (h *Headers) EncodeProtected() (bstr []byte) {
@@ -54,8 +58,9 @@ func (h *Headers) EncodeProtected() (bstr []byte) {
 	}
 	return encoded
 }
+
 // DecodeProtected Unmarshals from interface{}
-func (h *Headers) DecodeProtected(o interface {}) (err error) {
+func (h *Headers) DecodeProtected(o interface{}) (err error) {
 	b, ok := o.([]byte)
 	if !ok {
 		return fmt.Errorf("error casting protected header bytes; got %T", o)
@@ -68,7 +73,7 @@ func (h *Headers) DecodeProtected(o interface {}) (err error) {
 	if err != nil {
 		return fmt.Errorf("error CBOR decoding protected header bytes; got %T", protected)
 	}
-	protectedMap, ok := protected.(map[interface {}]interface {})
+	protectedMap, ok := protected.(map[interface{}]interface{})
 	if !ok {
 		return fmt.Errorf("error casting protected to map; got %T", protected)
 	}
@@ -76,16 +81,16 @@ func (h *Headers) DecodeProtected(o interface {}) (err error) {
 	h.protected = protectedMap
 	return nil
 }
+
 // DecodeUnprotected Unmarshals from interface{}
-func (h *Headers) DecodeUnprotected(o interface {}) (err error) {
-	msgHeadersUnprotected, ok := o.(map[interface {}]interface {})
+func (h *Headers) DecodeUnprotected(o interface{}) (err error) {
+	msgHeadersUnprotected, ok := o.(map[interface{}]interface{})
 	if !ok {
 		return fmt.Errorf("error decoding unprotected header as map[interface {}]interface {}; got %T", o)
 	}
 	h.unprotected = msgHeadersUnprotected
 	return nil
 }
-
 
 // GetCommonHeaderTag returns the CBOR tag for the map label
 //
@@ -301,6 +306,7 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 
 	return compressed
 }
+
 // DecompressHeaders replaces  int values with string tags and alg int values with their IANA labels inverse of CompressHeaders
 func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[interface{}]interface{}) {
 	decompressed = map[interface{}]interface{}{}
@@ -356,7 +362,6 @@ func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 	return nil, errors.New("Error fetching alg")
 }
 
-
 func getKeySizeForAlg(alg *generated.COSEAlgorithm) (keySize int, err error) {
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
 		keySize = 32
@@ -378,7 +383,7 @@ func getExpectedArgsForAlg(alg *generated.COSEAlgorithm) (expectedKeyBitSize int
 		expectedKeyBitSize = 384
 		hash = crypto.SHA384
 	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
-		expectedKeyBitSize = 521  // i.e. P-521
+		expectedKeyBitSize = 521 // i.e. P-521
 		hash = crypto.SHA512
 	} else if alg.Value == GetAlgByNameOrPanic("PS256").Value {
 		expectedKeyBitSize = 256
