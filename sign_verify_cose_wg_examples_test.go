@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func WGExampleSignsAndVerifies(t *testing.T, example util.COSEWGExample) {
+func WGExampleSignsAndVerifies(t *testing.T, example util.WGExample) {
 	assert := assert.New(t)
 	privateKey := util.LoadPrivateKey(&example)
 

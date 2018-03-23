@@ -651,7 +651,7 @@ var RSA_PARAMS = COSERustSignatureParameters{
 	pkcs8:       PKCS8_RSA_EE[:],
 }
 
-type COSERustTestCase struct {
+type RustTestCase struct {
 	Title         string                   // test fn name in cose-rust/examples/sign_verify/main.rs
 	SignAlg       *generated.COSEAlgorithm // COSE signing algorithm to use
 	SignPayload   []byte                   // payload to sign
@@ -666,7 +666,7 @@ type COSERustTestCase struct {
 }
 
 // From cose-rust/examples/sign_verify/main.rs::main
-var COSERustTestCases = []COSERustTestCase{
+var RustTestCases = []RustTestCase{
 	// Basic NSS example usage.
 	// {
 	// 	Title: "test_nss_sign_verify",
@@ -824,7 +824,7 @@ var algTag = GetCommonHeaderTagOrPanic("alg")
 var kidTag = GetCommonHeaderTagOrPanic("kid")
 var randReader = rand.New(rand.NewSource(0))
 
-func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
+func RustTestCaseSignsAndVerifies(t *testing.T, testCase RustTestCase) {
 	fmt.Println(fmt.Sprintf("%s", testCase.Title))
 
 	assert := assert.New(t)
@@ -888,9 +888,9 @@ func RustCoseTestCaseSignsAndVerifies(t *testing.T, testCase COSERustTestCase) {
 }
 
 func TestRustCoseExamples(t *testing.T) {
-	for _, testCase := range COSERustTestCases {
+	for _, testCase := range RustTestCases {
 		t.Run(testCase.Title, func(t *testing.T) {
-			RustCoseTestCaseSignsAndVerifies(t, testCase)
+			RustTestCaseSignsAndVerifies(t, testCase)
 		})
 	}
 }
