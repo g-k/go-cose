@@ -48,13 +48,9 @@ func (s *Signature) Decode(o interface{}) {
 		panic(fmt.Sprintf("can only decode Signature with 3 items; got %d", len(array)))
 	}
 
-	err := s.headers.DecodeProtected(array[0])
+	err := s.headers.Decode(array[0:2])
 	if err != nil {
-		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
-	}
-	err = s.headers.DecodeUnprotected(array[1])
-	if err != nil {
-		panic(fmt.Sprintf("error decoding unprotected header map; got %s", err))
+		panic(fmt.Sprintf("error decoding signature header: %+v", err))
 	}
 
 	signature, ok := array[2].([]byte)
