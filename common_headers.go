@@ -92,6 +92,22 @@ func (h *Headers) DecodeUnprotected(o interface{}) (err error) {
 	return nil
 }
 
+// Decode loads a two element interface{} slice into itself
+func (h *Headers) Decode(o []interface{}) (err error) {
+	if len(o) != 2 {
+		panic(fmt.Sprintf("can only decode headers from 2-item array; got %d", len(o)))
+	}
+	err = h.DecodeProtected(o[0])
+	if err != nil {
+		return err
+	}
+	err = h.DecodeUnprotected(o[1])
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetCommonHeaderTag returns the CBOR tag for the map label
 //
 // using Common COSE Headers Parameters Table 2
