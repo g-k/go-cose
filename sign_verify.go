@@ -7,13 +7,21 @@ import (
 	"io"
 )
 
-// Signature https://tools.ietf.org/html/rfc8152#section-4.1
+// Signature represents a COSE signature with CDDL fragment:
+//
+// COSE_Signature =  [
+//        Headers,
+//        signature : bstr
+// ]
+//
+// https://tools.ietf.org/html/rfc8152#section-4.1
 type Signature struct {
 	headers   *Headers
 	signature []byte
 }
 
-// NewSignature -
+// NewSignature returns a new COSE Signature with empty headers and
+// nil signature bytes
 func NewSignature() (s *Signature) {
 	return &Signature{
 		headers: &Headers{
@@ -24,12 +32,13 @@ func NewSignature() (s *Signature) {
 	}
 }
 
-// SetHeaders -
+// SetHeaders updates the pointer to Signature headers
 func (s *Signature) SetHeaders(h *Headers) {
 	s.headers = h
 }
 
-// Decode -
+// Decode updates the signature inplace from its COSE serialization
+// (see the docs for Signature)
 func (s *Signature) Decode(o interface{}) {
 	array, ok := o.([]interface{})
 	if !ok {
@@ -55,14 +64,23 @@ func (s *Signature) Decode(o interface{}) {
 	s.signature = signature
 }
 
-// SignMessage https://tools.ietf.org/html/rfc8152#section-4.1
+// SignMessage represents a COSESignMessage with CDDL fragment:
+//
+// COSE_Sign = [
+//        Headers,
+//        payload : bstr / nil,
+//        signatures : [+ COSE_Signature]
+// ]
+//
+// https://tools.ietf.org/html/rfc8152#section-4.1
 type SignMessage struct {
 	headers    *Headers
 	payload    []byte
 	signatures []Signature
 }
 
-// NewSignMessage -
+// NewSignMessage takes a []byte payload and returns a new SignMessage
+// with empty headers and signatures
 func NewSignMessage(payload []byte) (msg SignMessage) {
 	msg = SignMessage{
 		headers: &Headers{
@@ -75,17 +93,17 @@ func NewSignMessage(payload []byte) (msg SignMessage) {
 	return msg
 }
 
-// AddSignature -
+// AddSignature adds a signature to the message signatures
 func (m *SignMessage) AddSignature(s *Signature) {
 	m.signatures = append(m.signatures, *s)
 }
 
-// SetHeaders -
+// SetHeaders sets COSE headers for the message
 func (m *SignMessage) SetHeaders(h *Headers) {
 	m.headers = h
 }
 
-// SigStructure -
+// SigStructure returns the byte slice to be signed for tests and debugging
 func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeSigned []byte, err error) {
 	ToBeSigned, err = buildAndMarshalSigStructure(
 		m.headers.EncodeProtected(),
@@ -95,7 +113,11 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 	return
 }
 
-// SignatureDigest -
+// SignatureDigest takes a slice of extra external byte (can be
+// []byte) and a signature and returns the SigStructure
+// (i.e. ToBeSigned) hashed using the algorithm from the signature
+// parameter
+// TODO: check that signature is in SignMessage?
 func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (digest []byte, err error) {
 	ToBeSigned, err := m.SigStructure(external, signature)
 	if err != nil {
@@ -119,7 +141,7 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 // Signing and Verification Process
 // https://tools.ietf.org/html/rfc8152#section-4.4
 
-// Sign - signs a SignMessage populating signatures[].signature in place
+// Sign signs a SignMessage populating signatures[].signature in place
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
 	if m.signatures == nil {
 		return errors.New("nil sigs")
@@ -182,7 +204,7 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 	return nil
 }
 
-// Verify - verifies all signatures on the SignMessage
+// Verify verifies all signatures on the SignMessage
 func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 	if m.signatures == nil {
 		return nil // Nothing to check
