@@ -2,7 +2,7 @@ package cose
 
 import (
 	"fmt"
-	"github.com/g-k/go-cose/util"
+	"github.com/mozilla-services/go-cose/util"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
