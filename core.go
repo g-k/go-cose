@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
-	generated "github.com/g-k/go-cose/generated"
+	generated "github.com/mozilla-services/go-cose/generated"
 	"io"
 	"log"
 	"math/big"

@@ -4,7 +4,7 @@ import (
 	"crypto"
 	"errors"
 	"fmt"
-	generated "github.com/g-k/go-cose/generated"
+	generated "github.com/mozilla-services/go-cose/generated"
 	"log"
 )
 

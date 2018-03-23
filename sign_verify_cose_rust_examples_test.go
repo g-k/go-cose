@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	generated "github.com/g-k/go-cose/generated"
+	generated "github.com/mozilla-services/go-cose/generated"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
