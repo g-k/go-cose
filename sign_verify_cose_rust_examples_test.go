@@ -809,13 +809,13 @@ var RustTestCases = []RustTestCase{
 		Params:      []COSERustSignatureParameters{P256_PARAMS},
 	},
 	{
-		Title:       "test_cose_sign_verify_P384",
+		Title:       "test_cose_sign_verify_P384_no_other_certs",
 		SignPayload: []byte("This is the content."),
 		Certs:       [][]byte{},
 		Params:      []COSERustSignatureParameters{P384_PARAMS},
 	},
 	{
-		Title:       "test_cose_sign_verify_P521",
+		Title:       "test_cose_sign_verify_P521_no_other_certs",
 		SignPayload: []byte("This is the content."),
 		Certs:       [][]byte{},
 		Params:      []COSERustSignatureParameters{P521_PARAMS},
