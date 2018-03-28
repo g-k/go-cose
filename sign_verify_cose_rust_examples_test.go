@@ -1,13 +1,9 @@
 package cose
 
 import (
-	"crypto/x509"
 	"errors"
-	"fmt"
 	generated "github.com/mozilla-services/go-cose/generated"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
-	"testing"
 )
 
 // signing tests for Firefox Addon COSE Signatures
@@ -825,74 +821,3 @@ var RustTestCases = []RustTestCase{
 var algTag = GetCommonHeaderTagOrPanic("alg")
 var kidTag = GetCommonHeaderTagOrPanic("kid")
 var randReader = rand.New(rand.NewSource(0))
-
-func RustTestCaseSignsAndVerifies(t *testing.T, testCase RustTestCase) {
-	fmt.Println(fmt.Sprintf("%s", testCase.Title))
-
-	assert := assert.New(t)
-	assert.True(len(testCase.Params) > 0, "No signature params!")
-
-	message := NewSignMessage([]byte(testCase.SignPayload))
-
-	signers := []Signer{}
-	verifiers := []Verifier{}
-
-	for _, param := range testCase.Params {
-		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
-		assert.Nil(err)
-
-		signer, err := NewSigner(key)
-		assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", testCase.Title, err))
-		signers = append(signers, *signer)
-		verifiers = append(verifiers, *signer.Verifier(param.algorithm))
-
-		sig := NewSignature()
-		sig.headers.protected[algTag] = param.algorithm.Value
-		sig.headers.protected[kidTag] = param.certificate
-
-		msgHeaders := NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
-		msgHeaders.protected[kidTag] = testCase.Certs
-		message.SetHeaders(msgHeaders)
-		message.AddSignature(sig)
-	}
-	assert.True(len(message.signatures) > 0)
-	assert.Equal(len(message.signatures), len(signers))
-
-	external := []byte("")
-
-	err := message.Sign(randReader, external, SignOpts{
-		GetSigner: func(index int, signature Signature) (Signer, error) {
-			return signers[index], nil
-		},
-	})
-	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", testCase.Title, err))
-
-	if testCase.ModifySignature {
-		// tamper with the COSE signature.
-		sig1 := message.signatures[0].signature
-		sig1[len(sig1)-5] ^= sig1[len(sig1)-5]
-	}
-	if testCase.ModifyPayload {
-		message.payload[0] ^= message.payload[0]
-	}
-
-	// Verify our signature (round trip)
-	err = message.Verify(external, &VerifyOpts{
-		GetVerifier: func(index int, signature Signature) (Verifier, error) {
-			return verifiers[index], nil
-		},
-	})
-	if testCase.ModifySignature || testCase.ModifyPayload {
-		assert.Equal(err, testCase.VerifyResult, fmt.Sprintf("%s: round trip signature verification returned unexpected result %s", testCase.Title, err))
-	} else {
-		assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed %s", testCase.Title, err))
-	}
-}
-
-func TestRustCoseExamples(t *testing.T) {
-	for _, testCase := range RustTestCases {
-		t.Run(testCase.Title, func(t *testing.T) {
-			RustTestCaseSignsAndVerifies(t, testCase)
-		})
-	}
-}
