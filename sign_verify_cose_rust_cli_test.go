@@ -29,11 +29,8 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	message.SetHeaders(msgHeaders)
 
 	for _, param := range testCase.Params {
-		fmt.Println(fmt.Sprintf("signing with key %x", param.pkcs8))
 		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
 		assert.Nil(err)
-
-		// fmt.Println(fmt.Sprintf("key:\n%+v", key))
 
 		signer, err := NewSigner(key)
 		assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", testCase.Title, err))
@@ -42,12 +39,7 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 
 		sig := NewSignature()
 		sig.headers.protected[algTag] = param.algorithm.Value
-		sig.headers.protected[kidTag] = param.certificate  // otherwise we get malformed input from rust cose
-
-		// fmt.Println(fmt.Sprintf("sig protected headers:\n%+v\n", sig.headers.protected))
-		// fmt.Println(fmt.Sprintf("payload:\n%s\nsig:\n%s\n",
-		// 	hex.EncodeToString([]byte(testCase.SignPayload)),
-		// 	hex.EncodeToString(msgBytes)))
+		sig.headers.protected[kidTag] = param.certificate
 
 		message.AddSignature(sig)
 	}
@@ -85,9 +77,6 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	msgBytes, err := Marshal(message)
 	assert.Nil(err, fmt.Sprintf("%s: Error marshaling signed message to bytes %s", testCase.Title, err))
 
-	// sigBytes, err := Marshal(message.signatures[0].signature)
-	// assert.Nil(err, fmt.Sprintf("%s: Error marshaling message signature to bytes %s", testCase.Title, err))
-
 	// fmt.Println(fmt.Sprintf("payload:\n%s\nsig:\n%s\n",
 	// 	hex.EncodeToString([]byte(testCase.SignPayload)),
 	// 	hex.EncodeToString(msgBytes)))
@@ -117,10 +106,6 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 
 func TestRustCoseCli(t *testing.T) {
 	for _, testCase := range RustTestCases {
-		// if testCase.Title != "test_cose_sign_verify_P256_no_other_certs" {
-		// 	continue
-		// }
-
 		t.Run(testCase.Title, func(t *testing.T) {
 			RustCoseVerifiesGoCoseSignatures(t, testCase)
 		})
