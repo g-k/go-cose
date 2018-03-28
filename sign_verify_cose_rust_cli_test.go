@@ -98,7 +98,7 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 
 	cmd.Dir = "./test/cose-rust"
 	cmd.Env = append(os.Environ(),
-		"NSS_LIB_DIR=/usr/local/opt/nss/lib/",
+		// "NSS_LIB_DIR=/usr/local/opt/nss/lib/",
 		"RUSTFLAGS=-A dead_code -A unused_imports",
 	)
 	cmd.Stdout = os.Stdout
