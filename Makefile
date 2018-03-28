@@ -46,5 +46,4 @@ goveralls:
 	go get -u github.com/mattn/goveralls
 
 ci: godep golint goveralls install coverage lint vet
-	apt-get install -y nss
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
