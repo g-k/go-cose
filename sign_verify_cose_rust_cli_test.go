@@ -90,15 +90,13 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	// 	hex.EncodeToString(msgBytes)))
 
 	// Make sure cose-rust can verify our signature too
-	cmd := exec.Command("cargo", "run", "--example", "sign_verify",
+	cmd := exec.Command("cargo", "run", "--quiet", "--color", "never", "--example", "sign_verify",
 		"--",
 		"verify",
 		hex.EncodeToString([]byte(testCase.SignPayload)),
 		hex.EncodeToString(msgBytes))
 
 	cmd.Dir = "./test/cose-rust"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "RUSTFLAGS=-A dead_code -A unused_imports")
 	err = cmd.Run()
 
