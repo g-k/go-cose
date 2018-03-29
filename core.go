@@ -158,6 +158,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		if err != nil {
 			return fmt.Errorf("verification failed rsa.VerifyPSS err %s", err)
 		}
+		return nil
 	case *ecdsa.PublicKey:
 		keySize, err := getKeySizeForAlg(v.opts.alg)
 		if err != nil {
@@ -180,7 +181,6 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	default:
 		return errors.New("Unrecognized publicKey type")
 	}
-	return
 }
 
 // imperative functions on byte slices level
