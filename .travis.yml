@@ -3,6 +3,10 @@ env:
 language: go
 go:
   - "1.10"
+addons:
+  apt:
+    packages:
+    - curl
 script:
   make ci
 notifications:
