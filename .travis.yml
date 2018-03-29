@@ -7,6 +7,11 @@ addons:
   apt:
     packages:
     - curl
+before_install:
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+  - export PATH=$PATH:~/.cargo/bin/
+  - rustc --version
+  - cargo --version
 script:
   make ci
 notifications:
