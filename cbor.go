@@ -6,6 +6,37 @@ import (
 	"reflect"
 )
 
+const (
+	// COSE Message CBOR tags from
+	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
+	Encrypt0MessageCBORTag = 16
+	MAC0MessageCBORTag = 17
+	Sign1MessageCBORTag = 18
+
+	EncryptMessageCBORTag = 96
+	MACMessageCBORTag = 97
+	SignMessageCBORTag = 98
+)
+
+// GetCOSEHandle returns a codec.CborHandle with an extension
+// registered for COSE SignMessage as CBOR tag 98
+func GetCOSEHandle() (h *codec.CborHandle) {
+	h = new(codec.CborHandle)
+	h.IndefiniteLength = false // no streaming
+	h.Canonical = true         // sort map keys
+
+	var cExt Ext
+	// h.SetInterfaceExt(reflect.TypeOf(Encrypt0Message{}), EncryptMessageCBORTag, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(MAC0Message{}), MAC0MessageCBORTag, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(Sign1Message{}), Sign1MessageCBORTag, cExt)
+
+	// h.SetInterfaceExt(reflect.TypeOf(EncryptMessage{}), EncryptMessageCBORTag, cExt)
+	// h.SetInterfaceExt(reflect.TypeOf(MACMessage{}), MACMessageCBORTag, cExt)
+	h.SetInterfaceExt(reflect.TypeOf(SignMessage{}), SignMessageCBORTag, cExt)
+
+	return h
+}
+
 // Marshal returns the CBOR []byte encoding of param o
 func Marshal(o interface{}) (b []byte, err error) {
 	var enc *codec.Encoder = codec.NewEncoderBytes(&b, GetCOSEHandle())
@@ -102,27 +133,4 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("unsupported format expecting to decode into *SignMessage; got %T", dest))
 	}
 	*destMessage = *message
-}
-
-// GetCOSEHandle registers Extensions to support COSE message types
-// for their CBOR tags and returns a codec.CborHandle
-func GetCOSEHandle() (h *codec.CborHandle) {
-	h = new(codec.CborHandle)
-	h.IndefiniteLength = false // no streaming
-	h.Canonical = true         // sort map keys
-
-	var cExt Ext
-
-	// COSE Message CBOR tags from
-	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
-
-	// h.SetInterfaceExt(reflect.TypeOf(Encrypt0Message{}), 16, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(MAC0Message{}), 17, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(Sign1Message{}), 18, cExt)
-
-	// h.SetInterfaceExt(reflect.TypeOf(EncryptMessage{}), 96, cExt)
-	// h.SetInterfaceExt(reflect.TypeOf(MACMessage{}), 97, cExt)
-	h.SetInterfaceExt(reflect.TypeOf(SignMessage{}), 98, cExt)
-
-	return h
 }
