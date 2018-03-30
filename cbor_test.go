@@ -2,6 +2,9 @@ package cose
 
 import (
 	"fmt"
+	"errors"
+	"reflect"
+	codec "github.com/ugorji/go/codec"
 	"github.com/mozilla-services/go-cose/util"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -143,4 +146,25 @@ func TestCBOREncoding(t *testing.T) {
 			RoundtripsToExpectedBytes(t, testCase)
 		})
 	}
+}
+
+func TestCBOREncodingErrsOnUnexpectedType(t *testing.T) {
+	assert := assert.New(t)
+
+	type Flub struct {
+		foo string
+	}
+	obj := Flub{
+		foo: "not a SignMessage",
+	}
+
+	h := GetCOSEHandle()
+	var cExt Ext
+	h.SetInterfaceExt(reflect.TypeOf(obj), SignMessageCBORTag, cExt)
+
+	var b []byte
+	var enc *codec.Encoder = codec.NewEncoderBytes(&b, h)
+
+	err := enc.Encode(obj)
+	assert.Equal(errors.New("cbor encode error: unsupported format expecting to encode SignMessage; got *cose.Flub"), err)
 }
