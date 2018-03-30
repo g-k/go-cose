@@ -89,7 +89,7 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 // UpdateExt updates a value from a simpler interface for easy
 // decoding dest is always a point
 //
-// Note: dst is always a pointer kind to the registered extension type.
+// Note: dest is always a pointer kind to the registered extension type.
 func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	var src, vok = v.([]interface{})
 	if !vok {
