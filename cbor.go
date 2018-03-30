@@ -100,13 +100,9 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	}
 
 	var msgHeaders = NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
-	err := msgHeaders.DecodeProtected(src[0])
+	err := msgHeaders.Decode(src[0:2])
 	if err != nil {
-		panic(fmt.Sprintf("error decoding protected header bytes; got %s", err))
-	}
-	err = msgHeaders.DecodeUnprotected(src[1])
-	if err != nil {
-		panic(fmt.Sprintf("error decoding unprotected header map; got %s", err))
+		panic(fmt.Sprintf("error decoding header bytes; got %s", err))
 	}
 
 	var payload, pok = src[2].([]byte)
