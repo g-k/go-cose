@@ -90,6 +90,43 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 // decoding dest is always a point
 //
 // Note: dest is always a pointer kind to the registered extension type.
+//
+// Unpacks a SignMessage described by CDDL fragments:
+//
+// COSE_Sign = [
+//     Headers,
+//     payload : bstr / nil,
+//     signatures : [+ COSE_Signature]
+// ]
+//
+// COSE_Signature =  [
+//     Headers,
+//     signature : bstr
+// ]
+//
+// Headers = (
+//     protected : empty_or_serialized_map,
+//     unprotected : header_map
+// )
+//
+// header_map = {
+//     Generic_Headers,
+//     * label => values
+// }
+//
+// empty_or_serialized_map = bstr .cbor header_map / bstr .size 0
+//
+// Generic_Headers = (
+//        ? 1 => int / tstr,  ; algorithm identifier
+//        ? 2 => [+label],    ; criticality
+//        ? 3 => tstr / int,  ; content type
+//        ? 4 => bstr,        ; key identifier
+//        ? 5 => bstr,        ; IV
+//        ? 6 => bstr,        ; Partial IV
+//        ? 7 => COSE_Signature / [+COSE_Signature] ; Counter signature
+// )
+//
+// Note: the decoder will convert panics to errors
 func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	var src, vok = v.([]interface{})
 	if !vok {
@@ -120,7 +157,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	}
 	for _, sig := range sigs {
 		sigT := NewSignature()
-		sigT.Decode(sig)
+		sigT.Decode(sig)  // can panic
 		message.AddSignature(sigT)
 	}
 

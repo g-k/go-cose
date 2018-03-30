@@ -168,3 +168,61 @@ func TestCBOREncodingErrsOnUnexpectedType(t *testing.T) {
 	err := enc.Encode(obj)
 	assert.Equal(errors.New("cbor encode error: unsupported format expecting to encode SignMessage; got *cose.Flub"), err)
 }
+
+func TestCBORDecodingErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	type DecodeErrorTestCase struct {
+		bytes []byte
+		errorMessage string
+	}
+	var cases = []DecodeErrorTestCase{
+		{
+			util.HexToBytesOrDie("D862" + "60"), // tag(98) + text(0)
+			"cbor decode error [pos 3]: unsupported format expecting to decode from []interface{}; got string",
+		},
+		{
+			util.HexToBytesOrDie("D862" + "80"), // tag(98) + array(0)
+			"cbor decode error [pos 3]: can only decode SignMessage with 4 fields; got 0",
+		},
+		{
+			// tag(98) + array(4) [ 4 * text(0) ]
+			util.HexToBytesOrDie("D862" + "84" + "60" + "60" + "60" + "60"),
+			"cbor decode error [pos 7]: error decoding header bytes; got error casting protected header bytes; got string",
+		},
+		{
+			// tag(98) + array(4) [ bytes(0), map(0), 2 * text(0) ]
+			util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "60" + "60"),
+			"cbor decode error [pos 7]: error decoding msg payload decode from interface{} to []byte; got string",
+		},
+		{
+			// tag(98) + array(4) [ bytes(0), map(0), bytes(0), text(0) ]
+			util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "60"),
+			"cbor decode error [pos 7]: error decoding sigs; got string",
+		},
+	}
+
+	for _, testCase := range cases {
+		result, err := Unmarshal(testCase.bytes)
+		assert.Nil(result)
+		assert.Equal(errors.New(testCase.errorMessage), err)
+	}
+
+	// test decoding into the wrong dest type
+	type Flub struct {
+		foo string
+	}
+	obj := Flub{
+		foo: "not a SignMessage",
+	}
+
+	h := GetCOSEHandle()
+	var cExt Ext
+	h.SetInterfaceExt(reflect.TypeOf(obj), SignMessageCBORTag, cExt)
+
+	// tag(98) + array(4) [ bytes(0), map(0), bytes(0), array(0) ]
+	var dec *codec.Decoder = codec.NewDecoderBytes(util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "80"), h)
+
+	err := dec.Decode(&obj)
+	assert.Equal(errors.New("cbor decode error [pos 7]: unsupported format expecting to decode into *SignMessage; got *cose.Flub"), err)
+}
