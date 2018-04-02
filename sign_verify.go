@@ -140,10 +140,9 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 			return errors.New("nil sig headers")
 		} else if signature.headers.protected == nil {
 			return errors.New("nil sig headers.protected")
+		} else if signature.signature != nil || len(signature.signature) > 0 {
+			return fmt.Errorf("message already has a signature at %d %s", i, signature.signature)
 		}
-		// else if signature.signature != nil || len(signature.signature) > 0 {
-		// 	return fmt.Errorf("message already has a signature at %d %s", i, signature.signature)
-		// }
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
 		// 1.  Create a Sig_structure and populate it with the appropriate fields.
