@@ -86,6 +86,9 @@ func NewSignMessage(payload []byte) (msg SignMessage) {
 
 // AddSignature adds a signature to the message signatures
 func (m *SignMessage) AddSignature(s *Signature) {
+	if m.signatures == nil {
+		m.signatures = []Signature{}
+	}
 	m.signatures = append(m.signatures, *s)
 }
 
@@ -130,18 +133,18 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 // Sign signs a SignMessage populating signatures[].signature in place
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
 	if m.signatures == nil {
-		return errors.New("nil sigs")
+		return errors.New("SignMessage.signatures is nil. Use AddSignature to add one")
 	} else if len(m.signatures) < 1 {
 		return errors.New("No signatures to sign the message. Use AddSignature to add them")
 	}
 
 	for i, signature := range m.signatures {
 		if signature.headers == nil {
-			return errors.New("nil sig headers")
+			return errors.New("Signature.headers is nil")
 		} else if signature.headers.protected == nil {
-			return errors.New("nil sig headers.protected")
+			return errors.New("Signature.headers.protected is nil")
 		} else if signature.signature != nil || len(signature.signature) > 0 {
-			return fmt.Errorf("message already has a signature at %d %s", i, signature.signature)
+			return fmt.Errorf("SignMessage signature %d already has signature bytes (at .signature)", i)
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
