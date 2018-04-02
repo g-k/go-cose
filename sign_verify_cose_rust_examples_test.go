@@ -2,7 +2,6 @@ package cose
 
 import (
 	"errors"
-	generated "github.com/mozilla-services/go-cose/generated"
 	"math/rand"
 )
 
@@ -622,7 +621,7 @@ var XPI_PAYLOAD = [...]byte{
 
 type COSERustSignatureParameters struct {
 	certificate []byte
-	algorithm   *generated.COSEAlgorithm
+	algorithm   *COSEAlgorithm
 	pkcs8       []byte
 }
 
@@ -649,7 +648,7 @@ var RSA_PARAMS = COSERustSignatureParameters{
 
 type RustTestCase struct {
 	Title         string                   // test fn name in cose-rust/examples/sign_verify/main.rs
-	SignAlg       *generated.COSEAlgorithm // COSE signing algorithm to use
+	SignAlg       *COSEAlgorithm // COSE signing algorithm to use
 	SignPayload   []byte                   // payload to sign
 	VerifyPayload []byte                   // payload to verify (defaults to SignPayload)
 	Certs         [][]byte

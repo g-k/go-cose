@@ -33,9 +33,6 @@ util/data/elliptic-curves.csv: util/data
 
 iana-csvs: util/data/tags.csv util/data/algorithms.csv util/data/elliptic-curves.csv
 
-iana-codegen:
-	go run util/cmd/from_csv.go
-
 golint:
 	go get -u golang.org/x/lint/golint
 

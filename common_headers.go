@@ -4,7 +4,6 @@ import (
 	"crypto"
 	"errors"
 	"fmt"
-	generated "github.com/mozilla-services/go-cose/generated"
 	"log"
 )
 
@@ -180,9 +179,9 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 //
 // https://tools.ietf.org/html/rfc8152#section-16.4
 
-// GetAlgByName returns a generated.COSEAlgorithm for an IANA name
-func GetAlgByName(name string) (alg *generated.COSEAlgorithm, err error) {
-	for _, alg := range generated.COSEAlgorithms {
+// GetAlgByName returns a COSEAlgorithm for an IANA name
+func GetAlgByName(name string) (alg *COSEAlgorithm, err error) {
+	for _, alg := range COSEAlgorithms {
 		if alg.Name == name {
 			return &alg, nil
 		}
@@ -190,8 +189,8 @@ func GetAlgByName(name string) (alg *generated.COSEAlgorithm, err error) {
 	return nil, fmt.Errorf("Algorithm named %s not found", name)
 }
 
-// GetAlgByNameOrPanic returns a generated.COSEAlgorithm for an IANA name and panics otherwise
-func GetAlgByNameOrPanic(name string) (alg *generated.COSEAlgorithm) {
+// GetAlgByNameOrPanic returns a COSEAlgorithm for an IANA name and panics otherwise
+func GetAlgByNameOrPanic(name string) (alg *COSEAlgorithm) {
 	alg, err := GetAlgByName(name)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to get algorithm named %s", name))
@@ -199,9 +198,9 @@ func GetAlgByNameOrPanic(name string) (alg *generated.COSEAlgorithm) {
 	return alg
 }
 
-// GetAlgByValue returns a generated.COSEAlgorithm from an IANA value
-func GetAlgByValue(value int64) (alg *generated.COSEAlgorithm, err error) {
-	for _, alg := range generated.COSEAlgorithms {
+// GetAlgByValue returns a COSEAlgorithm from an IANA value
+func GetAlgByValue(value int64) (alg *COSEAlgorithm, err error) {
+	for _, alg := range COSEAlgorithms {
 		if int64(alg.Value) == value {
 			return &alg, nil
 		}
@@ -349,7 +348,7 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 }
 
 // getAlg returns the alg by label, int, or uint64 tag (as from Unmarshal)
-func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
+func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 	if tmp, ok := h.protected["alg"]; ok {
 		if algName, ok := tmp.(string); ok {
 			alg, err = GetAlgByName(algName)
@@ -378,7 +377,7 @@ func getAlg(h *Headers) (alg *generated.COSEAlgorithm, err error) {
 	return nil, errors.New("Error fetching alg")
 }
 
-func getKeySizeForAlg(alg *generated.COSEAlgorithm) (keySize int, err error) {
+func getKeySizeForAlg(alg *COSEAlgorithm) (keySize int, err error) {
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
 		keySize = 32
 	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
@@ -391,7 +390,7 @@ func getKeySizeForAlg(alg *generated.COSEAlgorithm) (keySize int, err error) {
 	return keySize, err
 }
 
-func getExpectedArgsForAlg(alg *generated.COSEAlgorithm) (expectedKeyBitSize int, hash crypto.Hash, err error) {
+func getExpectedArgsForAlg(alg *COSEAlgorithm) (expectedKeyBitSize int, hash crypto.Hash, err error) {
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
 		expectedKeyBitSize = 256
 		hash = crypto.SHA256

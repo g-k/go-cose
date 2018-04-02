@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
-	generated "github.com/mozilla-services/go-cose/generated"
 	"io"
 	"log"
 	"math/big"
@@ -117,7 +116,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 
 // Verifier returns a Verifier using the Signers public key and a func that returns whether the key is valid?
 func (s *Signer) Verifier(
-	alg *generated.COSEAlgorithm,
+	alg *COSEAlgorithm,
 	// getVerifierFunc (index int, signature Signature) (Verifier, error)
 ) (verifier *Verifier) {
 	return &Verifier{
@@ -136,7 +135,7 @@ type Verifier struct {
 
 // VerifierOpts -
 type VerifierOpts struct {
-	alg *generated.COSEAlgorithm
+	alg *COSEAlgorithm
 }
 
 // VerifyOpts -
