@@ -375,18 +375,3 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 	}
 	return nil, errors.New("Error fetching alg")
 }
-
-func getExpectedArgsForAlg(alg *COSEAlgorithm) (expectedKeyBitSize int, err error) {
-	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
-		expectedKeyBitSize = 256
-	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
-		expectedKeyBitSize = 384
-	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
-		expectedKeyBitSize = 521 // i.e. P-521
-	} else if alg.Value == GetAlgByNameOrPanic("PS256").Value {
-		expectedKeyBitSize = 256
-	} else {
-		return -1, errors.New("alg not implemented")
-	}
-	return expectedKeyBitSize, nil
-}

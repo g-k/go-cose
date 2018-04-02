@@ -218,10 +218,6 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		if err != nil {
 			return err
 		}
-		expectedKeyBitSize, err := getExpectedArgsForAlg(alg)
-		if err != nil {
-			return err
-		}
 
 		digest := hashSigStructure(ToBeSigned, alg.HashFunc)
 
@@ -231,8 +227,8 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		}
 		if ecdsaKey, ok := verifier.publicKey.(*ecdsa.PublicKey); ok {
 			curveBits := ecdsaKey.Curve.Params().BitSize
-			if expectedKeyBitSize != curveBits {
-				return fmt.Errorf("for signature %d expected %d bit key, got %d bits instead", i, expectedKeyBitSize, curveBits)
+			if alg.expectedKeyBitSize != curveBits {
+				return fmt.Errorf("for signature %d expected %d bit key, got %d bits instead", i, alg.expectedKeyBitSize, curveBits)
 			}
 		}
 

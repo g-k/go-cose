@@ -13,7 +13,8 @@ type COSEAlgorithm struct {
 	Name string
 	Value int
 	HashFunc crypto.Hash // optional hash function for SignMessages
-	keySize int // for an ecdsa signature size of r and s in bytes
+	keySize int // ecdsa signature size of r or s in bytes with padding
+	expectedKeyBitSize int // ecdsa signature curve key size in bits
 }
 
 var COSEAlgorithms = []COSEAlgorithm{
@@ -47,12 +48,14 @@ var COSEAlgorithms = []COSEAlgorithm{
 		Value: -36,
 		HashFunc: crypto.SHA512,
 		keySize: 66,
+		expectedKeyBitSize: 521,  // P-521
 	},
 	COSEAlgorithm{
 		Name: "ES384",  // ECDSA w/ SHA-384 from [RFC8152]
 		Value: -35,
 		HashFunc: crypto.SHA384,
 		keySize: 48,
+		expectedKeyBitSize: 384,
 	},
 	COSEAlgorithm{
 		Name: "ECDH-SS + A256KW",  // ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key from [RFC8152]
@@ -119,6 +122,7 @@ var COSEAlgorithms = []COSEAlgorithm{
 		Value: -7,
 		HashFunc: crypto.SHA256,
 		keySize: 32,
+		expectedKeyBitSize: 256,
 	},
 	COSEAlgorithm{
 		Name: "direct",  // Direct use of CEK from [RFC8152]
