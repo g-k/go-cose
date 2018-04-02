@@ -106,4 +106,8 @@ func TestSignErrors(t *testing.T) {
 	}
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("Unrecognized private key type"), err)
+
+	msg.signatures[0].headers.protected[algTag] = -9000
+	err = msg.Sign(randReader, []byte(""), opts)
+	assert.Equal(errors.New("Algorithm with value -9000 not found"), err)
 }
