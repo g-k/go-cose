@@ -77,4 +77,12 @@ func TestSignErrors(t *testing.T) {
 	assert.NotNil(msg.signatures[0].headers)
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("SignMessage signature 0 already has signature bytes (at .signature)"), err)
+
+	msg.signatures[0].signature = nil
+	err = msg.Sign(randReader, []byte(""), opts)
+	assert.Equal(errors.New("hash function is not available"), err)
+
+	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
+	err = msg.Sign(randReader, []byte(""), opts)
+	assert.Equal(errors.New("Error finding a Signer for signature 0"), err)
 }

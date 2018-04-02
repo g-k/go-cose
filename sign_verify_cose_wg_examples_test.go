@@ -81,7 +81,10 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.WGExample) {
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
 	// Verify our signature (round trip)
-	err = verifier.Verify(hashSigStructure(ToBeSigned, alg.HashFunc), message.signatures[0].signature)
+	digest, err := hashSigStructure(ToBeSigned, alg.HashFunc)
+	assert.Nil(err, fmt.Sprintf("%s: round trip failed to hash signature %s", example.Title, err))
+
+	err = verifier.Verify(digest, message.signatures[0].signature)
 	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed with err %s", example.Title, err))
 }
 

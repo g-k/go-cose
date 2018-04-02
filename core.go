@@ -210,16 +210,19 @@ func buildAndMarshalSigStructure(
 	//     byte string, using the encoding described in Section 14.
 	ToBeSigned, err = Marshal(sigStructure)
 	if err != nil {
-		return nil, fmt.Errorf("Marshal error encoding sigStructure: %s", err)
+		return nil, fmt.Errorf("Error marshaling Sig_structure: %s", err)
 	}
 	return ToBeSigned, nil
 }
 
-func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte) {
+func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte, err error) {
+	if !hash.Available() {
+		return []byte(""), errors.New("hash function is not available")
+	}
 	hasher := hash.New()
 	_, _ = hasher.Write(ToBeSigned) // Write() on hash never fails
 	digest = hasher.Sum(nil)
-	return digest
+	return digest, nil
 }
 
 // I2OSP converts a nonnegative integer to an octet string of a specified length
