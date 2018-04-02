@@ -58,14 +58,11 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.WGExample) {
 	// Test Sign
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
 
-	_, hash, err := getExpectedArgsForAlg(alg)
-	assert.Nil(err, fmt.Sprintf("%s: getExpectedArgsForAlg failed with err %s", example.Title, err))
-
 	// clear the signature
 	message.signatures[0].signature = nil
 
 	err = message.Sign(randReader, external, SignOpts{
-		HashFunc: hash,
+		HashFunc: alg.HashFunc,
 		GetSigner: func(index int, signature Signature) (Signer, error) {
 			return *signer, nil
 		},
@@ -84,7 +81,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example util.WGExample) {
 	// assert.Equal(example.Output.Cbor, signed, "CBOR encoded message wrong")
 
 	// Verify our signature (round trip)
-	err = verifier.Verify(hashSigStructure(ToBeSigned, hash), message.signatures[0].signature)
+	err = verifier.Verify(hashSigStructure(ToBeSigned, alg.HashFunc), message.signatures[0].signature)
 	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed with err %s", example.Title, err))
 }
 

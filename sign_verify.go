@@ -117,12 +117,8 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 	if err != nil {
 		return nil, err
 	}
-	_, hash, err := getExpectedArgsForAlg(alg)
-	if err != nil {
-		return nil, err
-	}
 
-	digest = hashSigStructure(ToBeSigned, hash)
+	digest = hashSigStructure(ToBeSigned, alg.HashFunc)
 
 	return digest, err
 }
@@ -165,13 +161,9 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 		if err != nil {
 			return err
 		}
-		_, hash, err := getExpectedArgsForAlg(alg)
-		if err != nil {
-			return err
-		}
-		opts.HashFunc = hash
+		opts.HashFunc = alg.HashFunc
 
-		digest := hashSigStructure(ToBeSigned, hash)
+		digest := hashSigStructure(ToBeSigned, alg.HashFunc)
 
 		signer, err := opts.GetSigner(i, signature)
 		if err != nil {
@@ -226,12 +218,12 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		if err != nil {
 			return err
 		}
-		expectedKeyBitSize, hash, err := getExpectedArgsForAlg(alg)
+		expectedKeyBitSize, err := getExpectedArgsForAlg(alg)
 		if err != nil {
 			return err
 		}
 
-		digest := hashSigStructure(ToBeSigned, hash)
+		digest := hashSigStructure(ToBeSigned, alg.HashFunc)
 
 		verifier, err := opts.GetVerifier(i, signature)
 		if err != nil {

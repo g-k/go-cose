@@ -147,14 +147,11 @@ type VerifyOpts struct {
 func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	switch key := v.publicKey.(type) {
 	case *rsa.PublicKey:
-		_, hash, err := getExpectedArgsForAlg(v.opts.alg)
-		if err != nil {
-			return err
-		}
+		hashFunc := v.opts.alg.HashFunc
 
-		err = rsa.VerifyPSS(key, hash, digest, signature, &rsa.PSSOptions{
+		err = rsa.VerifyPSS(key, hashFunc, digest, signature, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
-			Hash: hash,
+			Hash: hashFunc,
 		})
 		if err != nil {
 			return fmt.Errorf("verification failed rsa.VerifyPSS err %s", err)
@@ -163,7 +160,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	case *ecdsa.PublicKey:
 		keySize := v.opts.alg.keySize
 		if keySize < 1 {
-			return fmt.Errorf("Could not find a keySize for the algorithm")
+			return fmt.Errorf("Could not find a keySize for the ecdsa algorithm")
 		}
 
 		// r and s from sig

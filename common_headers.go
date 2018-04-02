@@ -1,7 +1,6 @@
 package cose
 
 import (
-	"crypto"
 	"errors"
 	"fmt"
 	"log"
@@ -377,22 +376,17 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 	return nil, errors.New("Error fetching alg")
 }
 
-func getExpectedArgsForAlg(alg *COSEAlgorithm) (expectedKeyBitSize int, hash crypto.Hash, err error) {
+func getExpectedArgsForAlg(alg *COSEAlgorithm) (expectedKeyBitSize int, err error) {
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
 		expectedKeyBitSize = 256
-		hash = crypto.SHA256
 	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
 		expectedKeyBitSize = 384
-		hash = crypto.SHA384
 	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
 		expectedKeyBitSize = 521 // i.e. P-521
-		hash = crypto.SHA512
 	} else if alg.Value == GetAlgByNameOrPanic("PS256").Value {
 		expectedKeyBitSize = 256
-		hash = crypto.SHA256
 	} else {
-		return -1, crypto.SHA256, errors.New("alg not implemented")
+		return -1, errors.New("alg not implemented")
 	}
-
-	return expectedKeyBitSize, hash, nil
+	return expectedKeyBitSize, nil
 }

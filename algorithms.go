@@ -4,9 +4,15 @@
 
 package cose
 
+
+import (
+	"crypto"
+)
+
 type COSEAlgorithm struct {
 	Name string
 	Value int
+	HashFunc crypto.Hash // optional hash function for SignMessages
 	keySize int // for an ecdsa signature size of r and s in bytes
 }
 
@@ -34,15 +40,18 @@ var COSEAlgorithms = []COSEAlgorithm{
 	COSEAlgorithm{
 		Name: "PS256",  // RSASSA-PSS w/ SHA-256 from [RFC8230]
 		Value: -37,
+		HashFunc: crypto.SHA256,
 	},
 	COSEAlgorithm{
 		Name: "ES512",  // ECDSA w/ SHA-512 from [RFC8152]
 		Value: -36,
+		HashFunc: crypto.SHA512,
 		keySize: 66,
 	},
 	COSEAlgorithm{
 		Name: "ES384",  // ECDSA w/ SHA-384 from [RFC8152]
 		Value: -35,
+		HashFunc: crypto.SHA384,
 		keySize: 48,
 	},
 	COSEAlgorithm{
@@ -108,6 +117,7 @@ var COSEAlgorithms = []COSEAlgorithm{
 	COSEAlgorithm{
 		Name: "ES256",  // ECDSA w/ SHA-256 from [RFC8152]
 		Value: -7,
+		HashFunc: crypto.SHA256,
 		keySize: 32,
 	},
 	COSEAlgorithm{
