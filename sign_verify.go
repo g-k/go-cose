@@ -94,6 +94,10 @@ func (m *SignMessage) AddSignature(s *Signature) {
 
 // SigStructure returns the byte slice to be signed for tests and debugging
 func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeSigned []byte, err error) {
+	// 1.  Create a Sig_structure and populate it with the appropriate fields.
+	//
+	// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
+	//     byte string, using the encoding described in Section 14.
 	ToBeSigned, err = buildAndMarshalSigStructure(
 		m.headers.EncodeProtected(),
 		signature.headers.EncodeProtected(),
@@ -147,29 +151,17 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
-		// 1.  Create a Sig_structure and populate it with the appropriate fields.
-		//
-		// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
-		//     byte string, using the encoding described in Section 14.
-		ToBeSigned, err := buildAndMarshalSigStructure(
-			m.headers.EncodeProtected(),
-			signature.headers.EncodeProtected(),
-			external,
-			m.payload)
+		digest, err := m.SignatureDigest(external, &signature)
 		if err != nil {
 			return err
 		}
 
+		// TODO: dedup with alg in m.SignatureDigest()?
 		alg, err := getAlg(signature.headers)
 		if err != nil {
 			return err
 		}
 		opts.HashFunc = alg.HashFunc
-
-		digest, err := hashSigStructure(ToBeSigned, alg.HashFunc)
-		if err != nil {
-			return err
-		}
 
 		signer, err := opts.GetSigner(i, signature)
 		if err != nil {
@@ -207,25 +199,13 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
-		// 1.  Create a Sig_structure and populate it with the appropriate fields.
-		//
-		// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
-		//     byte string, using the encoding described in Section 14.
-		ToBeSigned, err := buildAndMarshalSigStructure(
-			m.headers.EncodeProtected(),
-			signature.headers.EncodeProtected(),
-			external,
-			m.payload)
+		digest, err := m.SignatureDigest(external, &signature)
 		if err != nil {
 			return err
 		}
 
+		// TODO: dedup with alg in m.SignatureDigest()?
 		alg, err := getAlg(signature.headers)
-		if err != nil {
-			return err
-		}
-
-		digest, err := hashSigStructure(ToBeSigned, alg.HashFunc)
 		if err != nil {
 			return err
 		}
