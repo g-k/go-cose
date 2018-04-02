@@ -199,11 +199,11 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 
 	for i, signature := range m.signatures {
 		if signature.headers == nil {
-			return errors.New("nil sig headers")
+			return errors.New("Signature.headers is nil")
 		} else if signature.headers.protected == nil {
-			return errors.New("nil sig headers.protected")
+			return errors.New("Signature.headers.protected is nil")
 		} else if signature.signature == nil || len(signature.signature) < 1 {
-			return fmt.Errorf("message missing a signature at %d %+v", i, signature)
+			return fmt.Errorf("SignMessage signature %d missing signature bytes (at .signature) to verify", i)
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
