@@ -149,7 +149,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 
 	var m = NewSignMessage(payload)
 	var message = &m
-	message.SetHeaders(msgHeaders)
+	message.headers = msgHeaders
 
 	var sigs, sok = src[3].([]interface{})
 	if !sok {

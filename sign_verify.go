@@ -32,11 +32,6 @@ func NewSignature() (s *Signature) {
 	}
 }
 
-// SetHeaders updates the pointer to Signature headers
-func (s *Signature) SetHeaders(h *Headers) {
-	s.headers = h
-}
-
 // Decode updates the signature inplace from its COSE serialization
 // (see the docs for Signature)
 func (s *Signature) Decode(o interface{}) {
@@ -92,11 +87,6 @@ func NewSignMessage(payload []byte) (msg SignMessage) {
 // AddSignature adds a signature to the message signatures
 func (m *SignMessage) AddSignature(s *Signature) {
 	m.signatures = append(m.signatures, *s)
-}
-
-// SetHeaders sets COSE headers for the message
-func (m *SignMessage) SetHeaders(h *Headers) {
-	m.headers = h
 }
 
 // SigStructure returns the byte slice to be signed for tests and debugging

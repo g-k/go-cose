@@ -26,7 +26,7 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	message := NewSignMessage(payload)
 	msgHeaders := NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
 	msgHeaders.protected[kidTag] = testCase.Certs
-	message.SetHeaders(msgHeaders)
+	message.headers = msgHeaders
 
 	for _, param := range testCase.Params {
 		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
