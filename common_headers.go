@@ -385,7 +385,7 @@ func getKeySizeForAlg(alg *COSEAlgorithm) (keySize int, err error) {
 	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
 		keySize = 66
 	} else {
-		err = errors.New("alg not implemented")
+		err = errors.New("No key size for alg")
 	}
 	return keySize, err
 }
