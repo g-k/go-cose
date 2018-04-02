@@ -377,19 +377,6 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 	return nil, errors.New("Error fetching alg")
 }
 
-func getKeySizeForAlg(alg *COSEAlgorithm) (keySize int, err error) {
-	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
-		keySize = 32
-	} else if alg.Value == GetAlgByNameOrPanic("ES384").Value {
-		keySize = 48
-	} else if alg.Value == GetAlgByNameOrPanic("ES512").Value {
-		keySize = 66
-	} else {
-		err = errors.New("No key size for alg")
-	}
-	return keySize, err
-}
-
 func getExpectedArgsForAlg(alg *COSEAlgorithm) (expectedKeyBitSize int, hash crypto.Hash, err error) {
 	if alg.Value == GetAlgByNameOrPanic("ES256").Value {
 		expectedKeyBitSize = 256

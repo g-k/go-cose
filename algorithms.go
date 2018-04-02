@@ -7,6 +7,7 @@ package cose
 type COSEAlgorithm struct {
 	Name string
 	Value int
+	keySize int // for an ecdsa signature size of r and s in bytes
 }
 
 var COSEAlgorithms = []COSEAlgorithm{
@@ -37,10 +38,12 @@ var COSEAlgorithms = []COSEAlgorithm{
 	COSEAlgorithm{
 		Name: "ES512",  // ECDSA w/ SHA-512 from [RFC8152]
 		Value: -36,
+		keySize: 66,
 	},
 	COSEAlgorithm{
 		Name: "ES384",  // ECDSA w/ SHA-384 from [RFC8152]
 		Value: -35,
+		keySize: 48,
 	},
 	COSEAlgorithm{
 		Name: "ECDH-SS + A256KW",  // ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key from [RFC8152]
@@ -105,6 +108,7 @@ var COSEAlgorithms = []COSEAlgorithm{
 	COSEAlgorithm{
 		Name: "ES256",  // ECDSA w/ SHA-256 from [RFC8152]
 		Value: -7,
+		keySize: 32,
 	},
 	COSEAlgorithm{
 		Name: "direct",  // Direct use of CEK from [RFC8152]

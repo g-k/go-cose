@@ -161,9 +161,9 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		}
 		return nil
 	case *ecdsa.PublicKey:
-		keySize, err := getKeySizeForAlg(v.opts.alg)
-		if err != nil {
-			return err
+		keySize := v.opts.alg.keySize
+		if keySize < 1 {
+			return fmt.Errorf("Could not find a keySize for the algorithm")
 		}
 
 		// r and s from sig
