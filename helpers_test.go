@@ -4,6 +4,10 @@ import (
 	"math/rand"
 )
 
+
+// consts and helper functions for loading tests
+// does not contain tests
+
 // signing tests for Firefox Addon COSE Signatures
 //
 // see also:
