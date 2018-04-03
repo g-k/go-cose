@@ -33,7 +33,6 @@ func NewSignature() (s *Signature) {
 }
 
 // Decode updates the signature inplace from its COSE serialization
-// (see the docs for Signature)
 func (s *Signature) Decode(o interface{}) {
 	array, ok := o.([]interface{})
 	if !ok {
@@ -84,7 +83,8 @@ func NewSignMessage(payload []byte) (msg SignMessage) {
 	return msg
 }
 
-// AddSignature adds a signature to the message signatures
+// AddSignature adds a signature to the message signatures creating an
+// empty []Signature if necessary
 func (m *SignMessage) AddSignature(s *Signature) {
 	if m.signatures == nil {
 		m.signatures = []Signature{}
@@ -92,7 +92,7 @@ func (m *SignMessage) AddSignature(s *Signature) {
 	m.signatures = append(m.signatures, *s)
 }
 
-// SigStructure returns the byte slice to be signed for tests and debugging
+// SigStructure returns the byte slice to be signed
 func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeSigned []byte, err error) {
 	// 1.  Create a Sig_structure and populate it with the appropriate fields.
 	//
@@ -106,10 +106,10 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 	return
 }
 
-// SignatureDigest takes a slice of extra external byte (can be
-// []byte) and a signature and returns the SigStructure
-// (i.e. ToBeSigned) hashed using the algorithm from the signature
-// parameter
+// SignatureDigest takes an extra external byte slice and a Signature
+// and returns the SigStructure (i.e. ToBeSigned) hashed using the
+// algorithm from the signature parameter
+//
 // TODO: check that signature is in SignMessage?
 func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (digest []byte, err error) {
 	ToBeSigned, err := m.SigStructure(external, signature)
@@ -133,7 +133,7 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 // Signing and Verification Process
 // https://tools.ietf.org/html/rfc8152#section-4.4
 
-// Sign signs a SignMessage populating signatures[].signature in place
+// Sign signs a SignMessage populating signatures[].signature inplace
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
 	if m.signatures == nil {
 		return errors.New("SignMessage.signatures is nil. Use AddSignature to add one")
@@ -182,7 +182,8 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 	return nil
 }
 
-// Verify verifies all signatures on the SignMessage
+// Verify verifies all signatures on the SignMessage returning nil for
+// success or an error
 func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 	if m.signatures == nil || len(m.signatures) < 1 {
 		return nil // Nothing to check
