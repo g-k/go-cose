@@ -38,8 +38,6 @@ func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 	switch privateKey.(type) {
 	case *rsa.PrivateKey:
 	case *ecdsa.PrivateKey:
-	case rsa.PrivateKey:
-	case ecdsa.PrivateKey:
 	default:
 		return nil, errors.New("Could not return public key for Unrecognized private key type")
 	}
