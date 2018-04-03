@@ -48,7 +48,7 @@ func TestSignErrors(t *testing.T) {
 	opts := SignOpts{
 		HashFunc: crypto.SHA256,
 		GetSigner: func(index int, signature Signature) (Signer, error) {
-			return *signer, errors.New("No signer found.")
+			return *signer, errors.New("No signer found")
 		},
 	}
 
@@ -114,4 +114,92 @@ func TestSignErrors(t *testing.T) {
 	delete(msg.signatures[0].headers.protected, algTag)
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("Error fetching alg"), err)
+}
+
+func TestVerifyErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	// randReader := rand.New(rand.NewSource(int64(0)))
+	msg := NewSignMessage([]byte("payload to sign"))
+
+	ecdsaPrivateKey := ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+		},
+		D: util.FromBase64Int("V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM"),
+	}
+
+	sig := NewSignature()
+	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[kidTag] = 1
+
+	signer, err := NewSigner(&ecdsaPrivateKey)
+	assert.Nil(err, "Error creating signer")
+
+	verifier := signer.Verifier(GetAlgByNameOrPanic("ES256"))
+	assert.Nil(err, "Error creating verifier")
+
+	opts := VerifyOpts{
+		GetVerifier: func(index int, signature Signature) (Verifier, error) {
+			return *verifier, nil
+		},
+	}
+	payload := []byte("")
+
+	msg.signatures = []Signature{}
+	assert.Nil(msg.Verify(payload, &opts))
+
+	msg.signatures = nil
+	assert.Nil(msg.Verify(payload, &opts))
+
+	msg.AddSignature(sig)
+	msg.signatures[0].headers.protected = nil
+	assert.Equal(errors.New("Signature.headers.protected is nil"), msg.Verify(payload, &opts))
+
+	msg.signatures[0].headers = nil
+	assert.Equal(errors.New("Signature.headers is nil"), msg.Verify(payload, &opts))
+
+	sig = NewSignature()
+	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[kidTag] = 1
+	msg.signatures[0] = *sig
+	assert.Equal(errors.New("SignMessage signature 0 missing signature bytes (at .signature) to verify"), msg.Verify(payload, &opts))
+
+	msg.signatures[0].headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	msg.signatures[0].headers.protected[kidTag] = 1
+	msg.signatures[0].signature = []byte("already signed")
+	assert.Equal(errors.New("hash function is not available"), msg.Verify(payload, &opts))
+
+	msg.signatures[0].headers.protected[algTag] = -7  // ECDSA w/ SHA-256 from [RFC8152]
+	assert.Equal(errors.New("Error finding a Verifier for signature 0"), msg.Verify(payload, &VerifyOpts{
+		GetVerifier: func(index int, signature Signature) (Verifier, error) {
+			return *verifier, errors.New("No verifier found")
+		},
+	}))
+
+	verifier = &Verifier{
+		publicKey: ecdsa.PublicKey{
+			Curve: elliptic.P384(),
+			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+		},
+		opts: VerifierOpts{
+			alg: GetAlgByNameOrPanic("ES256"),
+		},
+	}
+	assert.Equal(errors.New("Error verifying signature 0 expected 256 bit key, got 384 bits instead"), msg.Verify(payload, &opts))
+
+	verifier = &Verifier{
+		publicKey: &ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+		},
+		opts: VerifierOpts{
+			alg: GetAlgByNameOrPanic("ES256"),
+		},
+	}
+	assert.Equal(errors.New("invalid signature length: 14"), msg.Verify(payload, &opts))
 }
