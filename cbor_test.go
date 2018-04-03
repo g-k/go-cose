@@ -3,7 +3,6 @@ package cose
 import (
 	"errors"
 	"fmt"
-	"go.mozilla.org/cose/util"
 	"github.com/stretchr/testify/assert"
 	codec "github.com/ugorji/go/codec"
 	"reflect"
@@ -29,7 +28,7 @@ var CBORTestCases = []CBORTestCase{
 	{
 		"generic interface map",
 		map[interface{}]interface{}{uint64(1): int64(-7)},
-		util.HexToBytesOrDie("A10126"),
+		HexToBytesOrDie("A10126"),
 	},
 
 	// Headers
@@ -73,7 +72,7 @@ var CBORTestCases = []CBORTestCase{
 				"alg": "PS256",
 			},
 		},
-		util.HexToBytesOrDie("43a10126"), // see "alg in protected header" comment
+		HexToBytesOrDie("43a10126"), // see "alg in protected header" comment
 	},
 	// TODO: test this despite golang not allowing duplicate key "alg" in map literal
 	// {
@@ -177,28 +176,33 @@ func TestCBORDecodingErrors(t *testing.T) {
 	}
 	var cases = []DecodeErrorTestCase{
 		{
-			util.HexToBytesOrDie("D862" + "60"), // tag(98) + text(0)
+			HexToBytesOrDie("D862" + "60"), // tag(98) + text(0)
 			"cbor decode error [pos 3]: unsupported format expecting to decode from []interface{}; got string",
 		},
 		{
-			util.HexToBytesOrDie("D862" + "80"), // tag(98) + array(0)
+			HexToBytesOrDie("D862" + "80"), // tag(98) + array(0)
 			"cbor decode error [pos 3]: can only decode SignMessage with 4 fields; got 0",
 		},
 		{
 			// tag(98) + array(4) [ 4 * text(0) ]
-			util.HexToBytesOrDie("D862" + "84" + "60" + "60" + "60" + "60"),
+			HexToBytesOrDie("D862" + "84" + "60" + "60" + "60" + "60"),
 			"cbor decode error [pos 7]: error decoding header bytes; got error casting protected header bytes; got string",
 		},
 		{
 			// tag(98) + array(4) [ bytes(0), map(0), 2 * text(0) ]
-			util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "60" + "60"),
+			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "60" + "60"),
 			"cbor decode error [pos 7]: error decoding msg payload decode from interface{} to []byte; got string",
 		},
 		{
 			// tag(98) + array(4) [ bytes(0), map(0), bytes(0), text(0) ]
-			util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "60"),
+			HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "60"),
 			"cbor decode error [pos 7]: error decoding sigs; got string",
 		},
+		// {
+		// 	// tag(98) + array(4) [ bytes(0), map(0), bytes(0), array(0) ]
+		// 	HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "80"),
+		// 	"cbor decode error [pos 7]: error decoding sigs; got string",
+		// },
 	}
 
 	for _, testCase := range cases {
@@ -220,7 +224,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 	h.SetInterfaceExt(reflect.TypeOf(obj), SignMessageCBORTag, cExt)
 
 	// tag(98) + array(4) [ bytes(0), map(0), bytes(0), array(0) ]
-	var dec *codec.Decoder = codec.NewDecoderBytes(util.HexToBytesOrDie("D862"+"84"+"40"+"A0"+"40"+"80"), h)
+	var dec *codec.Decoder = codec.NewDecoderBytes(HexToBytesOrDie("D862"+"84"+"40"+"A0"+"40"+"80"), h)
 
 	err := dec.Decode(&obj)
 	assert.Equal(errors.New("cbor decode error [pos 7]: unsupported format expecting to decode into *SignMessage; got *cose.Flub"), err)

@@ -4,25 +4,24 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"go.mozilla.org/cose/util"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strings"
 	"testing"
 )
 
-func WGExampleSignsAndVerifies(t *testing.T, example util.WGExample) {
+func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert := assert.New(t)
-	privateKey := util.LoadPrivateKey(&example)
+	privateKey := LoadPrivateKey(&example)
 
 	// testcases only include one signature
 	assert.Equal(len(example.Input.Sign.Signers), 1)
 
 	signerInput := example.Input.Sign.Signers[0]
 	alg := GetAlgByNameOrPanic(signerInput.Protected.Alg)
-	external := util.HexToBytesOrDie(signerInput.External)
+	external := HexToBytesOrDie(signerInput.External)
 
-	decoded, err := Unmarshal(util.HexToBytesOrDie(example.Output.Cbor))
+	decoded, err := Unmarshal(HexToBytesOrDie(example.Output.Cbor))
 	assert.Nil(err, fmt.Sprintf("%s: Error decoding example CBOR", example.Title))
 
 	if ExpectCastToFail(example.Title) {
@@ -115,8 +114,8 @@ func ExpectCastToFail(title string) (shouldFail bool) {
 
 func TestWGExamples(t *testing.T) {
 	examples := append(
-		util.LoadExamples("./test/cose-wg-examples/sign-tests"),
-		util.LoadExamples("./test/cose-wg-examples/ecdsa-examples")...,
+		LoadExamples("./test/cose-wg-examples/sign-tests"),
+		LoadExamples("./test/cose-wg-examples/ecdsa-examples")...,
 	)
 
 	for _, example := range examples {
