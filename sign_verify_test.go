@@ -110,4 +110,8 @@ func TestSignErrors(t *testing.T) {
 	msg.signatures[0].headers.protected[algTag] = -9000
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("Algorithm with value -9000 not found"), err)
+
+	delete(msg.signatures[0].headers.protected, algTag)
+	err = msg.Sign(randReader, []byte(""), opts)
+	assert.Equal(errors.New("Error fetching alg"), err)
 }

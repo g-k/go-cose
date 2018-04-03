@@ -151,17 +151,17 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
-		digest, err := m.SignatureDigest(external, &signature)
-		if err != nil {
-			return err
-		}
-
 		// TODO: dedup with alg in m.SignatureDigest()?
 		alg, err := getAlg(signature.headers)
 		if err != nil {
 			return err
 		}
 		opts.HashFunc = alg.HashFunc
+
+		digest, err := m.SignatureDigest(external, &signature)
+		if err != nil {
+			return err
+		}
 
 		signer, err := opts.GetSigner(i, signature)
 		if err != nil {
@@ -199,13 +199,13 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
-		digest, err := m.SignatureDigest(external, &signature)
+		// TODO: dedup with alg in m.SignatureDigest()?
+		alg, err := getAlg(signature.headers)
 		if err != nil {
 			return err
 		}
 
-		// TODO: dedup with alg in m.SignatureDigest()?
-		alg, err := getAlg(signature.headers)
+		digest, err := m.SignatureDigest(external, &signature)
 		if err != nil {
 			return err
 		}
