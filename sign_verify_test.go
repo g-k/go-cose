@@ -1,18 +1,17 @@
 package cose
 
 import (
-	"fmt"
-	"math/rand"
 	"crypto"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"errors"
+	"fmt"
 	"github.com/mozilla-services/go-cose/util"
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
 )
-
 
 func TestSignErrors(t *testing.T) {
 	assert := assert.New(t)
@@ -24,8 +23,8 @@ func TestSignErrors(t *testing.T) {
 	ecdsaPrivateKey := ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: elliptic.P256(),
-			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
-			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
 		D: util.FromBase64Int("V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM"),
 	}
@@ -53,9 +52,8 @@ func TestSignErrors(t *testing.T) {
 	}
 
 	sig := NewSignature()
-	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.headers.protected[kidTag] = 1
-
 
 	msg.signatures = []Signature{}
 	err = msg.Sign(randReader, []byte(""), opts)
@@ -81,7 +79,7 @@ func TestSignErrors(t *testing.T) {
 
 	msg.signatures = nil
 	sig.headers.protected = map[interface{}]interface{}{}
-	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.headers.protected[kidTag] = 1
 	sig.signature = []byte("already signed")
 
@@ -125,14 +123,14 @@ func TestVerifyErrors(t *testing.T) {
 	ecdsaPrivateKey := ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: elliptic.P256(),
-			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
-			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
 		D: util.FromBase64Int("V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM"),
 	}
 
 	sig := NewSignature()
-	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.headers.protected[kidTag] = 1
 
 	signer, err := NewSigner(&ecdsaPrivateKey)
@@ -162,17 +160,17 @@ func TestVerifyErrors(t *testing.T) {
 	assert.Equal(errors.New("Signature.headers is nil"), msg.Verify(payload, &opts))
 
 	sig = NewSignature()
-	sig.headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	sig.headers.protected[kidTag] = 1
 	msg.signatures[0] = *sig
 	assert.Equal(errors.New("SignMessage signature 0 missing signature bytes (at .signature) to verify"), msg.Verify(payload, &opts))
 
-	msg.signatures[0].headers.protected[algTag] = -41  // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	msg.signatures[0].headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	msg.signatures[0].headers.protected[kidTag] = 1
 	msg.signatures[0].signature = []byte("already signed")
 	assert.Equal(errors.New("hash function is not available"), msg.Verify(payload, &opts))
 
-	msg.signatures[0].headers.protected[algTag] = -7  // ECDSA w/ SHA-256 from [RFC8152]
+	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
 	assert.Equal(errors.New("Error finding a Verifier for signature 0"), msg.Verify(payload, &VerifyOpts{
 		GetVerifier: func(index int, signature Signature) (Verifier, error) {
 			return *verifier, errors.New("No verifier found")
@@ -182,8 +180,8 @@ func TestVerifyErrors(t *testing.T) {
 	verifier = &Verifier{
 		publicKey: ecdsa.PublicKey{
 			Curve: elliptic.P384(),
-			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
-			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
 		opts: VerifierOpts{
 			alg: GetAlgByNameOrPanic("ES256"),
@@ -194,8 +192,8 @@ func TestVerifyErrors(t *testing.T) {
 	verifier = &Verifier{
 		publicKey: &ecdsa.PublicKey{
 			Curve: elliptic.P256(),
-			X: util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
-			Y: util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
+			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
+			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
 		opts: VerifierOpts{
 			alg: GetAlgByNameOrPanic("ES256"),

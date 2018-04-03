@@ -1,12 +1,12 @@
 package cose
 
 import (
+	"crypto/x509"
+	"encoding/hex"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"os/exec"
-	"crypto/x509"
-	"fmt"
-	"encoding/hex"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 

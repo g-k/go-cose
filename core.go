@@ -74,7 +74,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 	case *rsa.PrivateKey:
 		sig, err := rsa.SignPSS(rand, key, opts.HashFunc, digest, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
-			Hash: opts.HashFunc,
+			Hash:       opts.HashFunc,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("rsa.SignPSS error %s", err)
@@ -151,7 +151,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 
 		err = rsa.VerifyPSS(key, hashFunc, digest, signature, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
-			Hash: hashFunc,
+			Hash:       hashFunc,
 		})
 		if err != nil {
 			return fmt.Errorf("verification failed rsa.VerifyPSS err %s", err)

@@ -647,10 +647,10 @@ var RSA_PARAMS = COSERustSignatureParameters{
 }
 
 type RustTestCase struct {
-	Title         string                   // test fn name in cose-rust/examples/sign_verify/main.rs
+	Title         string         // test fn name in cose-rust/examples/sign_verify/main.rs
 	SignAlg       *COSEAlgorithm // COSE signing algorithm to use
-	SignPayload   []byte                   // payload to sign
-	VerifyPayload []byte                   // payload to verify (defaults to SignPayload)
+	SignPayload   []byte         // payload to sign
+	VerifyPayload []byte         // payload to verify (defaults to SignPayload)
 	Certs         [][]byte
 	Params        []COSERustSignatureParameters
 	// SignError // expected error nil for success/ok
@@ -712,7 +712,7 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:           "test_cose_sign_verify_two_signatures_tampered_signature",
 		SignPayload:     []byte("This is the content."),
-		Certs:           [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:], },
+		Certs:           [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
 		Params:          []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
 		VerifyResult:    errors.New("verification failed ecdsa.Verify"),
 		ModifySignature: true,
@@ -720,7 +720,7 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:         "test_cose_sign_verify_two_signatures_tampered_payload",
 		SignPayload:   []byte("This is the content."),
-		Certs:         [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:], },
+		Certs:         [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
 		Params:        []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
 		VerifyResult:  errors.New("verification failed ecdsa.Verify"),
 		ModifyPayload: true,
@@ -728,13 +728,13 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:       "test_cose_sign_verify_two_signatures",
 		SignPayload: []byte("This is the content."),
-		Certs:       [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:], },
+		Certs:       [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
 		Params:      []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
 	},
 	{
 		Title:           "test_cose_sign_verify_rsa_tampered_signature",
 		SignPayload:     []byte("This is the RSA-signed content."),
-		Certs:           [][]byte{RSA_ROOT[:], RSA_INT[:], },
+		Certs:           [][]byte{RSA_ROOT[:], RSA_INT[:]},
 		Params:          []COSERustSignatureParameters{RSA_PARAMS},
 		VerifyResult:    errors.New("verification failed rsa.VerifyPSS err crypto/rsa: verification error"),
 		ModifySignature: true,
@@ -742,7 +742,7 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:         "test_cose_sign_verify_rsa_modified_payload",
 		SignPayload:   []byte("This is the RSA-signed content."),
-		Certs:         [][]byte{RSA_ROOT[:], RSA_INT[:], },
+		Certs:         [][]byte{RSA_ROOT[:], RSA_INT[:]},
 		Params:        []COSERustSignatureParameters{RSA_PARAMS},
 		VerifyResult:  errors.New("verification failed rsa.VerifyPSS err crypto/rsa: verification error"),
 		ModifyPayload: true,
@@ -750,13 +750,13 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:       "test_cose_sign_verify_rsa",
 		SignPayload: []byte("This is the RSA-signed content."),
-		Certs:       [][]byte{RSA_ROOT[:], RSA_INT[:], },
+		Certs:       [][]byte{RSA_ROOT[:], RSA_INT[:]},
 		Params:      []COSERustSignatureParameters{RSA_PARAMS},
 	},
 	{
 		Title:           "test_cose_sign_verify_tampered_signature",
 		SignPayload:     []byte("This is the content."),
-		Certs:           [][]byte{P256_ROOT[:], P256_INT[:], },
+		Certs:           [][]byte{P256_ROOT[:], P256_INT[:]},
 		Params:          []COSERustSignatureParameters{P256_PARAMS},
 		VerifyResult:    errors.New("verification failed ecdsa.Verify"),
 		ModifySignature: true,
@@ -777,7 +777,7 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:         "test_cose_sign_verify_modified_payload",
 		SignPayload:   []byte("This is the content."),
-		Certs:         [][]byte{ P256_ROOT[:], P256_INT[:], },
+		Certs:         [][]byte{P256_ROOT[:], P256_INT[:]},
 		Params:        []COSERustSignatureParameters{P256_PARAMS},
 		VerifyResult:  errors.New("verification failed ecdsa.Verify"),
 		ModifyPayload: true,
@@ -794,7 +794,7 @@ var RustTestCases = []RustTestCase{
 	{
 		Title:       "test_cose_sign_verify_P256",
 		SignPayload: []byte("This is the content."),
-		Certs:       [][]byte{ P256_ROOT[:], P256_INT[:], },
+		Certs:       [][]byte{P256_ROOT[:], P256_INT[:]},
 		Params:      []COSERustSignatureParameters{P256_PARAMS},
 	},
 	{

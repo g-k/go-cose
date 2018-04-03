@@ -10,12 +10,12 @@ const (
 	// COSE Message CBOR tags from
 	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
 	Encrypt0MessageCBORTag = 16
-	MAC0MessageCBORTag = 17
-	Sign1MessageCBORTag = 18
+	MAC0MessageCBORTag     = 17
+	Sign1MessageCBORTag    = 18
 
 	EncryptMessageCBORTag = 96
-	MACMessageCBORTag = 97
-	SignMessageCBORTag = 98
+	MACMessageCBORTag     = 97
+	SignMessageCBORTag    = 98
 )
 
 // GetCOSEHandle returns a codec.CborHandle with an extension
@@ -160,7 +160,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	}
 	for _, sig := range sigs {
 		sigT := NewSignature()
-		sigT.Decode(sig)  // can panic
+		sigT.Decode(sig) // can panic
 		message.AddSignature(sigT)
 	}
 

@@ -1,22 +1,22 @@
 package cose
 
 import (
-	"fmt"
 	"errors"
-	"reflect"
-	codec "github.com/ugorji/go/codec"
+	"fmt"
 	"github.com/mozilla-services/go-cose/util"
 	"github.com/stretchr/testify/assert"
+	codec "github.com/ugorji/go/codec"
+	"reflect"
 	"testing"
 )
 
 /// Tests for encoding and decoding go-cose objects to and from CBOR
 // TODO: combine into a single test that: round trips and checks expected marshal / unmarshal results
 
-type CBORTestCase struct{
-	name   string
-	obj    interface{}
-	bytes  []byte
+type CBORTestCase struct {
+	name  string
+	obj   interface{}
+	bytes []byte
 }
 
 var CBORTestCases = []CBORTestCase{
@@ -57,7 +57,7 @@ var CBORTestCases = []CBORTestCase{
 	{
 		"alg in unprotected header",
 		Headers{
-			protected: map[interface{}]interface{}{},
+			protected:   map[interface{}]interface{}{},
 			unprotected: map[interface{}]interface{}{"alg": "ES256"},
 		},
 		[]byte("\x40"),
@@ -99,7 +99,6 @@ var CBORTestCases = []CBORTestCase{
 	// 	[]byte(""),
 	// },
 }
-
 
 func MarshalsToExpectedBytes(t *testing.T, testCase CBORTestCase) {
 	assert := assert.New(t)
@@ -173,7 +172,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 	assert := assert.New(t)
 
 	type DecodeErrorTestCase struct {
-		bytes []byte
+		bytes        []byte
 		errorMessage string
 	}
 	var cases = []DecodeErrorTestCase{
@@ -221,7 +220,7 @@ func TestCBORDecodingErrors(t *testing.T) {
 	h.SetInterfaceExt(reflect.TypeOf(obj), SignMessageCBORTag, cExt)
 
 	// tag(98) + array(4) [ bytes(0), map(0), bytes(0), array(0) ]
-	var dec *codec.Decoder = codec.NewDecoderBytes(util.HexToBytesOrDie("D862" + "84" + "40" + "A0" + "40" + "80"), h)
+	var dec *codec.Decoder = codec.NewDecoderBytes(util.HexToBytesOrDie("D862"+"84"+"40"+"A0"+"40"+"80"), h)
 
 	err := dec.Decode(&obj)
 	assert.Equal(errors.New("cbor decode error [pos 7]: unsupported format expecting to decode into *SignMessage; got *cose.Flub"), err)
