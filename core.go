@@ -120,21 +120,14 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 func (s *Signer) Verifier(alg *COSEAlgorithm) (verifier *Verifier) {
 	return &Verifier{
 		publicKey: s.Public(),
-		opts: VerifierOpts{
-			alg: alg,
-		},
+		alg: alg,
 	}
 }
 
 // Verifier holds a PublicKey and COSEAlgorithm to verify signatures
 type Verifier struct {
 	publicKey crypto.PublicKey
-	opts      VerifierOpts
-}
-
-// VerifierOpts options for the Verifier constructor
-type VerifierOpts struct {
-	alg *COSEAlgorithm
+	alg       *COSEAlgorithm
 }
 
 // VerifyOpts are options to the Verifier.Verify requires a function
@@ -148,7 +141,7 @@ type VerifyOpts struct {
 func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	switch key := v.publicKey.(type) {
 	case *rsa.PublicKey:
-		hashFunc := v.opts.alg.HashFunc
+		hashFunc := v.alg.HashFunc
 
 		err = rsa.VerifyPSS(key, hashFunc, digest, signature, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthEqualsHash,
@@ -159,7 +152,7 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		}
 		return nil
 	case *ecdsa.PublicKey:
-		keySize := v.opts.alg.keySize
+		keySize := v.alg.keySize
 		if keySize < 1 {
 			return fmt.Errorf("Could not find a keySize for the ecdsa algorithm")
 		}

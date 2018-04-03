@@ -183,9 +183,7 @@ func TestVerifyErrors(t *testing.T) {
 			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
 			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
-		opts: VerifierOpts{
-			alg: GetAlgByNameOrPanic("ES256"),
-		},
+		alg: GetAlgByNameOrPanic("ES256"),
 	}
 	assert.Equal(errors.New("Error verifying signature 0 expected 256 bit key, got 384 bits instead"), msg.Verify(payload, &opts))
 
@@ -195,9 +193,7 @@ func TestVerifyErrors(t *testing.T) {
 			X:     util.FromBase64Int("usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8"),
 			Y:     util.FromBase64Int("IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4"),
 		},
-		opts: VerifierOpts{
-			alg: GetAlgByNameOrPanic("ES256"),
-		},
+		alg: GetAlgByNameOrPanic("ES256"),
 	}
 	assert.Equal(errors.New("invalid signature length: 14"), msg.Verify(payload, &opts))
 }
