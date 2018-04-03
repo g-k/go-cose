@@ -6,29 +6,60 @@ import (
 	"log"
 )
 
-// Headers - maps of protected and unprotected tags
+// Headers represents "two buckets of information that are not
+// considered to be part of the payload itself, but are used for
+// holding information about content, algorithms, keys, or evaluation
+// hints for the processing of the layer."
+//
+// https://tools.ietf.org/html/rfc8152#section-3
+//
+// It is represented by CDDL fragments:
+//
+// Headers = (
+//     protected : empty_or_serialized_map,
+//     unprotected : header_map
+// )
+//
+// header_map = {
+//     Generic_Headers,
+//     * label => values
+// }
+//
+// empty_or_serialized_map = bstr .cbor header_map / bstr .size 0
+//
+// Generic_Headers = (
+//        ? 1 => int / tstr,  ; algorithm identifier
+//        ? 2 => [+label],    ; criticality
+//        ? 3 => tstr / int,  ; content type
+//        ? 4 => bstr,        ; key identifier
+//        ? 5 => bstr,        ; IV
+//        ? 6 => bstr,        ; Partial IV
+//        ? 7 => COSE_Signature / [+COSE_Signature] ; Counter signature
+// )
+//
 type Headers struct {
 	protected   map[interface{}]interface{}
 	unprotected map[interface{}]interface{}
 }
 
-// MarshalBinary serializes the headers for CBOR (untagged)
+// MarshalBinary is called by codec to serialize Headers to CBOR bytes
 func (h *Headers) MarshalBinary() (data []byte, err error) {
 	// TODO: include unprotected?
 	return h.EncodeProtected(), nil
 }
 
-// UnmarshalBinary not implemented; panics
+// UnmarshalBinary is not implemented and panics
 func (h *Headers) UnmarshalBinary(data []byte) (err error) {
-	panic("unsupported Headers.UnmarshalBinary")
+	panic("Headers.UnmarshalBinary is not implemented")
 }
 
-// EncodeUnprotected returns headers with shortened tags
+// EncodeUnprotected returns compressed unprotected headers
 func (h *Headers) EncodeUnprotected() (encoded map[interface{}]interface{}) {
 	return CompressHeaders(h.unprotected)
 }
 
-// EncodeProtected can panic
+// EncodeProtected compresses and Marshals protected headers to bytes
+// to encode as a CBOR bstr
 // TODO: check for dups in maps
 func (h *Headers) EncodeProtected() (bstr []byte) {
 	if h == nil {
@@ -46,7 +77,7 @@ func (h *Headers) EncodeProtected() (bstr []byte) {
 	return encoded
 }
 
-// DecodeProtected Unmarshals from interface{}
+// DecodeProtected Unmarshals and sets Headers.protected from an interface{}
 func (h *Headers) DecodeProtected(o interface{}) (err error) {
 	b, ok := o.([]byte)
 	if !ok {
@@ -69,7 +100,7 @@ func (h *Headers) DecodeProtected(o interface{}) (err error) {
 	return nil
 }
 
-// DecodeUnprotected Unmarshals from interface{}
+// DecodeUnprotected Unmarshals and sets Headers.unprotected from an interface{}
 func (h *Headers) DecodeUnprotected(o interface{}) (err error) {
 	msgHeadersUnprotected, ok := o.(map[interface{}]interface{})
 	if !ok {
@@ -79,7 +110,8 @@ func (h *Headers) DecodeUnprotected(o interface{}) (err error) {
 	return nil
 }
 
-// Decode loads a two element interface{} slice into itself
+// Decode loads a two element interface{} slice into Headers.protected
+// and unprotected respectively
 func (h *Headers) Decode(o []interface{}) (err error) {
 	if len(o) != 2 {
 		panic(fmt.Sprintf("can only decode headers from 2-item array; got %d", len(o)))
@@ -120,7 +152,8 @@ func GetCommonHeaderTag(label string) (tag int, err error) {
 	}
 }
 
-// GetCommonHeaderTagOrPanic for consts strings returns the CBOR label for a string
+// GetCommonHeaderTagOrPanic returns the CBOR label for a string. Is
+// the inverse of GetCommonHeaderLabel.
 func GetCommonHeaderTagOrPanic(label string) (tag int) {
 	tag, err := GetCommonHeaderTag(label)
 	if err != nil {
@@ -129,8 +162,8 @@ func GetCommonHeaderTagOrPanic(label string) (tag int) {
 	return tag
 }
 
-// GetCommonHeaderLabel returns the CBOR label for the map tag
-// inverse of GetCommonHeaderTag
+// GetCommonHeaderLabel returns the CBOR label for the map tag.  Is
+// the inverse of GetCommonHeaderTag.
 func GetCommonHeaderLabel(tag int) (label string, err error) {
 	switch tag {
 	case 1:
@@ -153,7 +186,6 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 }
 
 // GetAlgTag returns the CBOR tag for the alg label value
-//
 //
 // From the spec:
 //
@@ -186,7 +218,7 @@ func GetAlgByNameOrPanic(name string) (alg *COSEAlgorithm) {
 	return alg
 }
 
-// GetAlgByValue returns a COSEAlgorithm from an IANA value
+// GetAlgByValue returns a COSEAlgorithm for an IANA value
 func GetAlgByValue(value int64) (alg *COSEAlgorithm, err error) {
 	for _, alg := range COSEAlgorithms {
 		if int64(alg.Value) == value {
@@ -196,7 +228,7 @@ func GetAlgByValue(value int64) (alg *COSEAlgorithm, err error) {
 	return nil, fmt.Errorf("Algorithm with value %v not found", value)
 }
 
-// GetAlgTag foo
+// GetAlgTag returns the alg int tag for a supported IANA alg name
 func GetAlgTag(label string) (tag int, err error) {
 	switch label {
 	case "PS256":
@@ -228,7 +260,8 @@ func GetAlgLabel(tag int) (label string, err error) {
 	}
 }
 
-// CompressHeaders replaces string tags with their int values and alg tags with their IANA int values inverse of DecompressHeaders
+// CompressHeaders replaces string tags with their int values and alg
+// tags with their IANA int values. Is the inverse of DecompressHeaders.
 func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interface{}]interface{}) {
 	compressed = map[interface{}]interface{}{}
 
@@ -254,7 +287,8 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 	return compressed
 }
 
-// DecompressHeaders replaces  int values with string tags and alg int values with their IANA labels inverse of CompressHeaders
+// DecompressHeaders replaces int values with string tags and alg int
+// values with their IANA labels. Is the inverse of CompressHeaders.
 func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[interface{}]interface{}) {
 	decompressed = map[interface{}]interface{}{}
 
