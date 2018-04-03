@@ -26,12 +26,14 @@ const (
 	ContextCounterSignature = "CounterSignature"
 )
 
-// Signer - implements crypto.Signer interface
+// Signer holds a private key for signing SignMessages implements
+// crypto.Signer interface
 type Signer struct {
 	privateKey crypto.PrivateKey
 }
 
-// NewSigner checks whether the privateKey is supported and returns a new cose.Signer
+// NewSigner checks whether the privateKey is supported and returns a
+// new cose.Signer
 func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 	switch privateKey.(type) {
 	case *rsa.PrivateKey:
@@ -59,16 +61,17 @@ func (s *Signer) Public() (publicKey crypto.PublicKey) {
 	return
 }
 
-// SignOpts are options for cose.Signer.Sign
+// SignOpts are options for Signer.Sign()
 //
 // HashFunc is the crypto.Hash to apply to the SigStructure
-// func GetSigner returns the cose.Signer or an error for the
+// func GetSigner returns the cose.Signer for the signature protected
+// key ID or an error when one isn't found
 type SignOpts struct {
 	HashFunc  crypto.Hash
 	GetSigner func(index int, signature Signature) (Signer, error)
 }
 
-// Sign returns a byte slice of the COSE signature
+// Sign returns the COSE signature as a byte slice
 func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature []byte, err error) {
 	switch key := s.privateKey.(type) {
 	case *rsa.PrivateKey:
@@ -114,11 +117,9 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 	}
 }
 
-// Verifier returns a Verifier using the Signers public key and a func that returns whether the key is valid?
-func (s *Signer) Verifier(
-	alg *COSEAlgorithm,
-	// getVerifierFunc (index int, signature Signature) (Verifier, error)
-) (verifier *Verifier) {
+// Verifier returns a Verifier using the Signer's public key and
+// provided COSEAlgorithm
+func (s *Signer) Verifier(alg *COSEAlgorithm) (verifier *Verifier) {
 	return &Verifier{
 		publicKey: s.Public(),
 		opts: VerifierOpts{
@@ -127,23 +128,25 @@ func (s *Signer) Verifier(
 	}
 }
 
-// Verifier -
+// Verifier holds a PublicKey and COSEAlgorithm to verify signatures
 type Verifier struct {
 	publicKey crypto.PublicKey
 	opts      VerifierOpts
 }
 
-// VerifierOpts -
+// VerifierOpts options for the Verifier constructor
 type VerifierOpts struct {
 	alg *COSEAlgorithm
 }
 
-// VerifyOpts -
+// VerifyOpts are options to the Verifier.Verify requires a function
+// that returns verifier or error for a given signature and message
+// index
 type VerifyOpts struct {
 	GetVerifier func(index int, signature Signature) (Verifier, error)
 }
 
-// Verify returns nil for success or an error
+// Verify verifies a signature returning nil for success or an error
 func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 	switch key := v.publicKey.(type) {
 	case *rsa.PublicKey:
@@ -183,6 +186,8 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 
 // imperative functions on byte slices level
 
+// buildAndMarshalSigStructure creates a Sig_structure, populates it
+// with the appropriate fields, and marshals it to CBOR bytes
 func buildAndMarshalSigStructure(
 	bodyProtected []byte,
 	signProtected []byte,
@@ -215,6 +220,7 @@ func buildAndMarshalSigStructure(
 	return ToBeSigned, nil
 }
 
+// hashSigStructure computes the crypto.Hash digest of a byte slice
 func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte, err error) {
 	if !hash.Available() {
 		return []byte(""), errors.New("hash function is not available")
