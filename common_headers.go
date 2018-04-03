@@ -218,36 +218,6 @@ func GetAlgTag(label string) (tag int, err error) {
 		return -35, nil
 	case "ES512":
 		return -36, nil
-	case "EdDSA":
-		return -8, nil
-	case "HMAC 256/64":
-		return 4, nil
-	case "HMAC 256/256":
-		return 5, nil
-	case "HMAC 384/384":
-		return 6, nil
-	case "HMAC 512/512":
-		return 7, nil
-	case "AES-MAC 128/64":
-		return 14, nil
-	case "AES-MAC 256/64":
-		return 15, nil
-	case "AES-MAC 128/128":
-		return 25, nil
-	case "AES-MAC 256/128":
-		return 26, nil
-	case "A128GCM":
-		return 1, nil
-	case "A192GCM":
-		return 2, nil
-	case "A256GCM":
-		return 3, nil
-	case "AES-CCM-16-64-128":
-		return 10, nil
-	case "ChaCha20/Poly1305":
-		return 24, nil
-	case "direct":
-		return -6, nil
 	default:
 		return 0, errors.New("Alg not implemented or invalid")
 	}
@@ -264,32 +234,6 @@ func GetAlgLabel(tag int) (label string, err error) {
 		return "ES384", nil
 	case -36:
 		return "ES512", nil
-	case -8:
-		return "EdDSA", nil
-	case 4:
-		return "HMAC 256/64", nil
-	case 5:
-		return "HMAC 256/256", nil
-	case 6:
-		return "HMAC 384/384", nil
-	case 7:
-		return "HMAC 512/512", nil
-	case 14:
-		return "AES-MAC 128/64", nil
-	case 15:
-		return "AES-MAC 256/64", nil
-	case 25:
-		return "AES-MAC 128/128", nil
-	case 26:
-		return "AES-MAC 256/128", nil
-	case 1:
-		return "A128GCM", nil
-	case 2:
-		return "A192GCM", nil
-	case 3:
-		return "A256GCM", nil
-	case 10:
-		return "AES-CCM-16-64-128", nil
 	default:
 		return "", errors.New("Alg not implemented or invalid")
 	}
