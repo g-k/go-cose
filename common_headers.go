@@ -12,17 +12,6 @@ type Headers struct {
 	unprotected map[interface{}]interface{}
 }
 
-// NewHeaders -
-// TODO: replace if this doesn't do validation
-func NewHeaders(
-	protected map[interface{}]interface{},
-	unprotected map[interface{}]interface{}) (h *Headers) {
-	return &Headers{
-		protected:   protected,
-		unprotected: unprotected,
-	}
-}
-
 // MarshalBinary serializes the headers for CBOR (untagged)
 func (h *Headers) MarshalBinary() (data []byte, err error) {
 	// TODO: include unprotected?

@@ -136,7 +136,10 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 		panic(fmt.Sprintf("can only decode SignMessage with 4 fields; got %d", len(src)))
 	}
 
-	var msgHeaders = NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
+	var msgHeaders = &Headers{
+		protected:   map[interface{}]interface{}{},
+		unprotected: map[interface{}]interface{}{},
+	}
 	err := msgHeaders.Decode(src[0:2])
 	if err != nil {
 		panic(fmt.Sprintf("error decoding header bytes; got %s", err))

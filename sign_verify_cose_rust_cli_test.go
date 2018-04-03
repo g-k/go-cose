@@ -24,7 +24,10 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 
 	var payload = []byte(testCase.SignPayload)
 	message := NewSignMessage(payload)
-	msgHeaders := NewHeaders(map[interface{}]interface{}{}, map[interface{}]interface{}{})
+	msgHeaders := &Headers{
+		protected:   map[interface{}]interface{}{},
+		unprotected: map[interface{}]interface{}{},
+	}
 	msgHeaders.protected[kidTag] = testCase.Certs
 	message.headers = msgHeaders
 
