@@ -2,7 +2,6 @@ package cose
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"io"
 )
@@ -136,16 +135,16 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 // Sign signs a SignMessage populating signatures[].signature inplace
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
 	if m.signatures == nil {
-		return errors.New("SignMessage.signatures is nil. Use AddSignature to add one")
+		return NilSignaturesErr
 	} else if len(m.signatures) < 1 {
-		return errors.New("No signatures to sign the message. Use AddSignature to add them")
+		return NoSignaturesErr
 	}
 
 	for i, signature := range m.signatures {
 		if signature.headers == nil {
-			return errors.New("Signature.headers is nil")
+			return NilSigHeaderErr
 		} else if signature.headers.protected == nil {
-			return errors.New("Signature.headers.protected is nil")
+			return NilSigProtectedHeadersErr
 		} else if signature.signature != nil || len(signature.signature) > 0 {
 			return fmt.Errorf("SignMessage signature %d already has signature bytes (at .signature)", i)
 		}
@@ -192,9 +191,9 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 
 	for i, signature := range m.signatures {
 		if signature.headers == nil {
-			return errors.New("Signature.headers is nil")
+			return NilSigHeaderErr
 		} else if signature.headers.protected == nil {
-			return errors.New("Signature.headers.protected is nil")
+			return NilSigProtectedHeadersErr
 		} else if signature.signature == nil || len(signature.signature) < 1 {
 			return fmt.Errorf("SignMessage signature %d missing signature bytes (at .signature) to verify", i)
 		}

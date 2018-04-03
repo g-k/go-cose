@@ -47,7 +47,7 @@ func TestSignErrors(t *testing.T) {
 	opts := SignOpts{
 		HashFunc: crypto.SHA256,
 		GetSigner: func(index int, signature Signature) (Signer, error) {
-			return *signer, errors.New("No signer found")
+			return *signer, NoSignerFoundErr
 		},
 	}
 
@@ -57,11 +57,11 @@ func TestSignErrors(t *testing.T) {
 
 	msg.signatures = []Signature{}
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("No signatures to sign the message. Use AddSignature to add them"), err)
+	assert.Equal(NoSignaturesErr, err)
 
 	msg.signatures = nil
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("SignMessage.signatures is nil. Use AddSignature to add one"), err)
+	assert.Equal(NilSignaturesErr, err)
 
 	// check that it creates the signatures array from nil
 	msg.AddSignature(sig)
@@ -69,13 +69,13 @@ func TestSignErrors(t *testing.T) {
 
 	msg.signatures[0].headers = nil
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("Signature.headers is nil"), err)
+	assert.Equal(NilSigHeaderErr, err)
 
 	msg.signatures = nil
 	msg.AddSignature(sig)
 	msg.signatures[0].headers.protected = nil
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("Signature.headers.protected is nil"), err)
+	assert.Equal(NilSigProtectedHeadersErr, err)
 
 	msg.signatures = nil
 	sig.headers.protected = map[interface{}]interface{}{}
@@ -91,7 +91,7 @@ func TestSignErrors(t *testing.T) {
 
 	msg.signatures[0].signature = nil
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("hash function is not available"), err)
+	assert.Equal(UnavailableHashFuncErr, err)
 
 	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
 	err = msg.Sign(randReader, []byte(""), opts)
@@ -103,7 +103,7 @@ func TestSignErrors(t *testing.T) {
 		return *signer, nil
 	}
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("Unrecognized private key type"), err)
+	assert.Equal(UnknownPrivateKeyTypeErr, err)
 
 	msg.signatures[0].headers.protected[algTag] = -9000
 	err = msg.Sign(randReader, []byte(""), opts)
@@ -111,7 +111,7 @@ func TestSignErrors(t *testing.T) {
 
 	delete(msg.signatures[0].headers.protected, algTag)
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("Error fetching alg"), err)
+	assert.Equal(AlgNotFoundErr, err)
 }
 
 func TestVerifyErrors(t *testing.T) {
@@ -154,10 +154,10 @@ func TestVerifyErrors(t *testing.T) {
 
 	msg.AddSignature(sig)
 	msg.signatures[0].headers.protected = nil
-	assert.Equal(errors.New("Signature.headers.protected is nil"), msg.Verify(payload, &opts))
+	assert.Equal(NilSigProtectedHeadersErr, msg.Verify(payload, &opts))
 
 	msg.signatures[0].headers = nil
-	assert.Equal(errors.New("Signature.headers is nil"), msg.Verify(payload, &opts))
+	assert.Equal(NilSigHeaderErr, msg.Verify(payload, &opts))
 
 	sig = NewSignature()
 	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
@@ -168,12 +168,12 @@ func TestVerifyErrors(t *testing.T) {
 	msg.signatures[0].headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
 	msg.signatures[0].headers.protected[kidTag] = 1
 	msg.signatures[0].signature = []byte("already signed")
-	assert.Equal(errors.New("hash function is not available"), msg.Verify(payload, &opts))
+	assert.Equal(UnavailableHashFuncErr, msg.Verify(payload, &opts))
 
 	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
 	assert.Equal(errors.New("Error finding a Verifier for signature 0"), msg.Verify(payload, &VerifyOpts{
 		GetVerifier: func(index int, signature Signature) (Verifier, error) {
-			return *verifier, errors.New("No verifier found")
+			return *verifier, NoVerifierFoundErr
 		},
 	}))
 

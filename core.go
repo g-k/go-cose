@@ -5,7 +5,6 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -39,7 +38,7 @@ func NewSigner(privateKey crypto.PrivateKey) (signer *Signer, err error) {
 	case *rsa.PrivateKey:
 	case *ecdsa.PrivateKey:
 	default:
-		return nil, errors.New("Could not return public key for Unrecognized private key type")
+		return nil, UnknownPrivateKeyTypeErr
 	}
 	return &Signer{
 		privateKey: privateKey,
@@ -111,7 +110,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 
 		return sig, nil
 	default:
-		return nil, errors.New("Unrecognized private key type")
+		return nil, UnknownPrivateKeyTypeErr
 	}
 }
 
@@ -169,9 +168,9 @@ func (v *Verifier) Verify(digest []byte, signature []byte) (err error) {
 		if ok {
 			return nil
 		}
-		return errors.New("verification failed ecdsa.Verify")
+		return ECDSAVerificationErr
 	default:
-		return errors.New("Unrecognized publicKey type")
+		return UnknownPublicKeyTypeErr
 	}
 }
 
@@ -214,7 +213,7 @@ func buildAndMarshalSigStructure(
 // hashSigStructure computes the crypto.Hash digest of a byte slice
 func hashSigStructure(ToBeSigned []byte, hash crypto.Hash) (digest []byte, err error) {
 	if !hash.Available() {
-		return []byte(""), errors.New("hash function is not available")
+		return []byte(""), UnavailableHashFuncErr
 	}
 	hasher := hash.New()
 	_, _ = hasher.Write(ToBeSigned) // Write() on hash never fails

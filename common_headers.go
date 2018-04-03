@@ -1,7 +1,6 @@
 package cose
 
 import (
-	"errors"
 	"fmt"
 	"log"
 )
@@ -148,7 +147,7 @@ func GetCommonHeaderTag(label string) (tag int, err error) {
 	case "counter signature":
 		return 7, nil
 	default:
-		return 0, errors.New("No common COSE tag for label")
+		return 0, MissingCOSETagForLabelErr
 	}
 }
 
@@ -181,7 +180,7 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	case 7:
 		return "counter signature", nil
 	default:
-		return "", errors.New("No common COSE label for tag")
+		return "", MissingCOSETagForTagErr
 	}
 }
 
@@ -294,5 +293,5 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 			return alg, nil
 		}
 	}
-	return nil, errors.New("Error fetching alg")
+	return nil, AlgNotFoundErr
 }
