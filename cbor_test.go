@@ -3,7 +3,7 @@ package cose
 import (
 	"errors"
 	"fmt"
-	"github.com/mozilla-services/go-cose/util"
+	"go.mozilla.org/cose/util"
 	"github.com/stretchr/testify/assert"
 	codec "github.com/ugorji/go/codec"
 	"reflect"

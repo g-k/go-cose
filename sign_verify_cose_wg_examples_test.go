@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/mozilla-services/go-cose/util"
+	"go.mozilla.org/cose/util"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"strings"
