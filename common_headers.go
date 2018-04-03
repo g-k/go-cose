@@ -185,20 +185,6 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	}
 }
 
-// GetAlgTag returns the CBOR tag for the alg label value
-//
-// From the spec:
-//
-// NOTE: The assignment of algorithm identifiers in this document was
-// done so that positive numbers were used for the first layer objects
-// (COSE_Sign, COSE_Sign1, COSE_Encrypt, COSE_Encrypt0, COSE_Mac, and
-// COSE_Mac0).  Negative numbers were used for second layer objects
-// (COSE_Signature and COSE_recipient).
-//
-// https://www.iana.org/assignments/cose/cose.xhtml#header-algorithm-parameters
-//
-// https://tools.ietf.org/html/rfc8152#section-16.4
-
 // GetAlgByName returns a COSEAlgorithm for an IANA name
 func GetAlgByName(name string) (alg *COSEAlgorithm, err error) {
 	for _, alg := range COSEAlgorithms {
@@ -228,38 +214,6 @@ func GetAlgByValue(value int64) (alg *COSEAlgorithm, err error) {
 	return nil, fmt.Errorf("Algorithm with value %v not found", value)
 }
 
-// GetAlgTag returns the alg int tag for a supported IANA alg name
-func GetAlgTag(label string) (tag int, err error) {
-	switch label {
-	case "PS256":
-		return -37, nil
-	case "ES256":
-		return -7, nil
-	case "ES384":
-		return -35, nil
-	case "ES512":
-		return -36, nil
-	default:
-		return 0, errors.New("Alg not implemented or invalid")
-	}
-}
-
-// GetAlgLabel returns the CBOR alg label/name for the alg tag
-func GetAlgLabel(tag int) (label string, err error) {
-	switch tag {
-	case -37:
-		return "PS256", nil
-	case -7:
-		return "ES256", nil
-	case -35:
-		return "ES384", nil
-	case -36:
-		return "ES512", nil
-	default:
-		return "", errors.New("Alg not implemented or invalid")
-	}
-}
-
 // CompressHeaders replaces string tags with their int values and alg
 // tags with their IANA int values. Is the inverse of DecompressHeaders.
 func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interface{}]interface{}) {
@@ -274,9 +228,9 @@ func CompressHeaders(headers map[interface{}]interface{}) (compressed map[interf
 				k = tag
 
 				if kstr == "alg" && vok {
-					at, err := GetAlgTag(vstr)
+					alg, err := GetAlgByName(vstr)
 					if err == nil {
-						v = at
+						v = alg.Value
 					}
 				}
 			}
@@ -300,9 +254,9 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 			if err == nil {
 				k = label
 				if label == "alg" && vok {
-					algLabel, err := GetAlgLabel(vint)
+					alg, err := GetAlgByValue(int64(vint))
 					if err == nil {
-						v = algLabel
+						v = alg.Name
 					}
 				}
 			}

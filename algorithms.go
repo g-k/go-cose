@@ -15,6 +15,20 @@ type COSEAlgorithm struct {
 	expectedKeyBitSize int         // ecdsa signature curve key size in bits
 }
 
+// From the spec:
+//
+// NOTE: The assignment of algorithm identifiers in this document was
+// done so that positive numbers were used for the first layer objects
+// (COSE_Sign, COSE_Sign1, COSE_Encrypt, COSE_Encrypt0, COSE_Mac, and
+// COSE_Mac0).  Negative numbers were used for second layer objects
+// (COSE_Signature and COSE_recipient).
+//
+// TODO: check alg ints conform to these rules sign and verify functions
+//
+// https://www.iana.org/assignments/cose/cose.xhtml#header-algorithm-parameters
+//
+// https://tools.ietf.org/html/rfc8152#section-16.4
+//
 var COSEAlgorithms = []COSEAlgorithm{
 	COSEAlgorithm{
 		Name:  "RSAES-OAEP w/ SHA-512", // RSAES-OAEP w/ SHA-512 from [RFC8230]
