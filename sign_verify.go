@@ -135,16 +135,16 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 // Sign signs a SignMessage populating signatures[].signature inplace
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
 	if m.Signatures == nil {
-		return NilSignaturesErr
+		return ErrNilSignatures
 	} else if len(m.Signatures) < 1 {
-		return NoSignaturesErr
+		return ErrNoSignatures
 	}
 
 	for i, signature := range m.Signatures {
 		if signature.Headers == nil {
-			return NilSigHeaderErr
+			return ErrNilSigHeader
 		} else if signature.Headers.Protected == nil {
-			return NilSigProtectedHeadersErr
+			return ErrNilSigProtectedHeaders
 		} else if signature.SignatureBytes != nil || len(signature.SignatureBytes) > 0 {
 			return fmt.Errorf("SignMessage signature %d already has signature bytes", i)
 		}
@@ -191,9 +191,9 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 
 	for i, signature := range m.Signatures {
 		if signature.Headers == nil {
-			return NilSigHeaderErr
+			return ErrNilSigHeader
 		} else if signature.Headers.Protected == nil {
-			return NilSigProtectedHeadersErr
+			return ErrNilSigProtectedHeaders
 		} else if signature.SignatureBytes == nil || len(signature.SignatureBytes) < 1 {
 			return fmt.Errorf("SignMessage signature %d missing signature bytes to verify", i)
 		}

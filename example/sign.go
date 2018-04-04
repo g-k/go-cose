@@ -46,7 +46,7 @@ func main() {
 			if signature.Headers.Unprotected["kid"] == 1 || signature.Headers.Unprotected[cose.GetCommonHeaderTagOrPanic("kid")] == 1 {
 				return *signer, nil
 			} else {
-				return *signer, cose.NoSignerFoundErr
+				return *signer, cose.ErrNoSignerFound
 			}
 		},
 	})

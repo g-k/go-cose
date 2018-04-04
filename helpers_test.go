@@ -724,7 +724,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:     []byte("This is the content."),
 		Certs:           [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
 		Params:          []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
-		VerifyResult:    ECDSAVerificationErr,
+		VerifyResult:    ErrECDSAVerification,
 		ModifySignature: true,
 	},
 	{
@@ -732,7 +732,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:   []byte("This is the content."),
 		Certs:         [][]byte{P256_ROOT[:], P256_INT[:], RSA_ROOT[:], RSA_INT[:]},
 		Params:        []COSERustSignatureParameters{P256_PARAMS, RSA_PARAMS},
-		VerifyResult:  ECDSAVerificationErr,
+		VerifyResult:  ErrECDSAVerification,
 		ModifyPayload: true,
 	},
 	{
@@ -746,7 +746,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:     []byte("This is the RSA-signed content."),
 		Certs:           [][]byte{RSA_ROOT[:], RSA_INT[:]},
 		Params:          []COSERustSignatureParameters{RSA_PARAMS},
-		VerifyResult:    RSAPSSVerificationErr,
+		VerifyResult:    ErrRSAPSSVerification,
 		ModifySignature: true,
 	},
 	{
@@ -754,7 +754,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:   []byte("This is the RSA-signed content."),
 		Certs:         [][]byte{RSA_ROOT[:], RSA_INT[:]},
 		Params:        []COSERustSignatureParameters{RSA_PARAMS},
-		VerifyResult:  RSAPSSVerificationErr,
+		VerifyResult:  ErrRSAPSSVerification,
 		ModifyPayload: true,
 	},
 	{
@@ -768,7 +768,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:     []byte("This is the content."),
 		Certs:           [][]byte{P256_ROOT[:], P256_INT[:]},
 		Params:          []COSERustSignatureParameters{P256_PARAMS},
-		VerifyResult:    ECDSAVerificationErr,
+		VerifyResult:    ErrECDSAVerification,
 		ModifySignature: true,
 	},
 	// {
@@ -789,7 +789,7 @@ var RustTestCases = []RustTestCase{
 		SignPayload:   []byte("This is the content."),
 		Certs:         [][]byte{P256_ROOT[:], P256_INT[:]},
 		Params:        []COSERustSignatureParameters{P256_PARAMS},
-		VerifyResult:  ECDSAVerificationErr,
+		VerifyResult:  ErrECDSAVerification,
 		ModifyPayload: true,
 	},
 	// {

@@ -48,7 +48,7 @@ From [example/sign.go](example/sign.go):
 			if signature.Headers.Unprotected["kid"] == 1 || signature.Headers.Unprotected[cose.GetCommonHeaderTagOrPanic("kid")] == 1 {
 				return *signer, nil
 			} else {
-				return *signer, cose.NoSignerFoundErr
+				return *signer, cose.ErrNoSignerFound
 			}
 		},
 	})
@@ -79,7 +79,7 @@ Continuing from the signer example in [example/verify.go](example/verify.go):
 	// Verify
 	err = msg.Verify(external, &cose.VerifyOpts{
 		GetVerifier: func(index int, signature cose.Signature) (cose.Verifier, error) {
-			// or return cose.NoVerifierFoundErr
+			// or return cose.ErrNoVerifierFound
 			return *verifier, nil
 		},
 	})

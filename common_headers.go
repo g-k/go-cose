@@ -149,7 +149,7 @@ func GetCommonHeaderTag(label string) (tag int, err error) {
 	case "counter signature":
 		return 7, nil
 	default:
-		return 0, MissingCOSETagForLabelErr
+		return 0, ErrMissingCOSETagForLabel
 	}
 }
 
@@ -182,7 +182,7 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	case 7:
 		return "counter signature", nil
 	default:
-		return "", MissingCOSETagForTagErr
+		return "", ErrMissingCOSETagForTag
 	}
 }
 
@@ -295,7 +295,7 @@ func getAlg(h *Headers) (alg *Algorithm, err error) {
 			return alg, nil
 		}
 	}
-	return nil, AlgNotFoundErr
+	return nil, ErrAlgNotFound
 }
 
 // FromBase64Int decodes a base64-encoded string into a big.Int or panics
