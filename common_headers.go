@@ -39,8 +39,8 @@ import (
 // )
 //
 type Headers struct {
-	protected   map[interface{}]interface{}
-	unprotected map[interface{}]interface{}
+	Protected   map[interface{}]interface{}
+	Unprotected map[interface{}]interface{}
 }
 
 // MarshalBinary is called by codec to serialize Headers to CBOR bytes
@@ -56,7 +56,7 @@ func (h *Headers) UnmarshalBinary(data []byte) (err error) {
 
 // EncodeUnprotected returns compressed unprotected headers
 func (h *Headers) EncodeUnprotected() (encoded map[interface{}]interface{}) {
-	return CompressHeaders(h.unprotected)
+	return CompressHeaders(h.Unprotected)
 }
 
 // EncodeProtected compresses and Marshals protected headers to bytes
@@ -67,11 +67,11 @@ func (h *Headers) EncodeProtected() (bstr []byte) {
 		panic("Cannot encode nil Headers")
 	}
 
-	if h.protected == nil || len(h.protected) < 1 {
+	if h.Protected == nil || len(h.Protected) < 1 {
 		return []byte("")
 	}
 
-	encoded, err := Marshal(CompressHeaders(h.protected))
+	encoded, err := Marshal(CompressHeaders(h.Protected))
 	if err != nil {
 		log.Fatalf("Marshal error of protected headers %s", err)
 	}
@@ -97,7 +97,7 @@ func (h *Headers) DecodeProtected(o interface{}) (err error) {
 		return fmt.Errorf("error casting protected to map; got %T", protected)
 	}
 
-	h.protected = protectedMap
+	h.Protected = protectedMap
 	return nil
 }
 
@@ -107,7 +107,7 @@ func (h *Headers) DecodeUnprotected(o interface{}) (err error) {
 	if !ok {
 		return fmt.Errorf("error decoding unprotected header as map[interface {}]interface {}; got %T", o)
 	}
-	h.unprotected = msgHeadersUnprotected
+	h.Unprotected = msgHeadersUnprotected
 	return nil
 }
 
@@ -270,7 +270,7 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 
 // getAlg returns the alg by label, int, or uint64 tag (as from Unmarshal)
 func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
-	if tmp, ok := h.protected["alg"]; ok {
+	if tmp, ok := h.Protected["alg"]; ok {
 		if algName, ok := tmp.(string); ok {
 			alg, err = GetAlgByName(algName)
 			if err != nil {
@@ -278,7 +278,7 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 			}
 			return alg, nil
 		}
-	} else if tmp, ok := h.protected[uint64(1)]; ok {
+	} else if tmp, ok := h.Protected[uint64(1)]; ok {
 		if algValue, ok := tmp.(int64); ok {
 			alg, err = GetAlgByValue(algValue)
 			if err != nil {
@@ -286,7 +286,7 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 			}
 			return alg, nil
 		}
-	} else if tmp, ok := h.protected[int(1)]; ok {
+	} else if tmp, ok := h.Protected[int(1)]; ok {
 		if algValue, ok := tmp.(int); ok {
 			alg, err = GetAlgByValue(int64(algValue))
 			if err != nil {

@@ -15,19 +15,19 @@ import (
 //
 // https://tools.ietf.org/html/rfc8152#section-4.1
 type Signature struct {
-	headers   *Headers
-	signature []byte
+	Headers   *Headers
+	SignatureBytes []byte
 }
 
 // NewSignature returns a new COSE Signature with empty headers and
 // nil signature bytes
 func NewSignature() (s *Signature) {
 	return &Signature{
-		headers: &Headers{
-			protected:   map[interface{}]interface{}{},
-			unprotected: map[interface{}]interface{}{},
+		Headers: &Headers{
+			Protected:   map[interface{}]interface{}{},
+			Unprotected: map[interface{}]interface{}{},
 		},
-		signature: nil,
+		SignatureBytes: nil,
 	}
 }
 
@@ -41,16 +41,16 @@ func (s *Signature) Decode(o interface{}) {
 		panic(fmt.Sprintf("can only decode Signature with 3 items; got %d", len(array)))
 	}
 
-	err := s.headers.Decode(array[0:2])
+	err := s.Headers.Decode(array[0:2])
 	if err != nil {
 		panic(fmt.Sprintf("error decoding signature header: %+v", err))
 	}
 
-	signature, ok := array[2].([]byte)
+	signatureBytes, ok := array[2].([]byte)
 	if !ok {
 		panic(fmt.Sprintf("unable to decode COSE signature expecting decode from interface{}; got %T", array[2]))
 	}
-	s.signature = signature
+	s.SignatureBytes = signatureBytes
 }
 
 // SignMessage represents a COSESignMessage with CDDL fragment:
@@ -63,21 +63,21 @@ func (s *Signature) Decode(o interface{}) {
 //
 // https://tools.ietf.org/html/rfc8152#section-4.1
 type SignMessage struct {
-	headers    *Headers
-	payload    []byte
-	signatures []Signature
+	Headers    *Headers
+	Payload    []byte
+	Signatures []Signature
 }
 
 // NewSignMessage takes a []byte payload and returns a new SignMessage
 // with empty headers and signatures
 func NewSignMessage(payload []byte) (msg SignMessage) {
 	msg = SignMessage{
-		headers: &Headers{
-			protected:   map[interface{}]interface{}{},
-			unprotected: map[interface{}]interface{}{},
+		Headers: &Headers{
+			Protected:   map[interface{}]interface{}{},
+			Unprotected: map[interface{}]interface{}{},
 		},
-		payload:    payload,
-		signatures: []Signature{},
+		Payload:    payload,
+		Signatures: []Signature{},
 	}
 	return msg
 }
@@ -85,10 +85,10 @@ func NewSignMessage(payload []byte) (msg SignMessage) {
 // AddSignature adds a signature to the message signatures creating an
 // empty []Signature if necessary
 func (m *SignMessage) AddSignature(s *Signature) {
-	if m.signatures == nil {
-		m.signatures = []Signature{}
+	if m.Signatures == nil {
+		m.Signatures = []Signature{}
 	}
-	m.signatures = append(m.signatures, *s)
+	m.Signatures = append(m.Signatures, *s)
 }
 
 // SigStructure returns the byte slice to be signed
@@ -98,10 +98,10 @@ func (m *SignMessage) SigStructure(external []byte, signature *Signature) (ToBeS
 	// 2.  Create the value ToBeSigned by encoding the Sig_structure to a
 	//     byte string, using the encoding described in Section 14.
 	ToBeSigned, err = buildAndMarshalSigStructure(
-		m.headers.EncodeProtected(),
-		signature.headers.EncodeProtected(),
+		m.Headers.EncodeProtected(),
+		signature.Headers.EncodeProtected(),
 		external,
-		m.payload)
+		m.Payload)
 	return
 }
 
@@ -116,7 +116,7 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 		return nil, err
 	}
 
-	alg, err := getAlg(signature.headers)
+	alg, err := getAlg(signature.Headers)
 	if err != nil {
 		return nil, err
 	}
@@ -134,24 +134,24 @@ func (m *SignMessage) SignatureDigest(external []byte, signature *Signature) (di
 
 // Sign signs a SignMessage populating signatures[].signature inplace
 func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err error) {
-	if m.signatures == nil {
+	if m.Signatures == nil {
 		return NilSignaturesErr
-	} else if len(m.signatures) < 1 {
+	} else if len(m.Signatures) < 1 {
 		return NoSignaturesErr
 	}
 
-	for i, signature := range m.signatures {
-		if signature.headers == nil {
+	for i, signature := range m.Signatures {
+		if signature.Headers == nil {
 			return NilSigHeaderErr
-		} else if signature.headers.protected == nil {
+		} else if signature.Headers.Protected == nil {
 			return NilSigProtectedHeadersErr
-		} else if signature.signature != nil || len(signature.signature) > 0 {
-			return fmt.Errorf("SignMessage signature %d already has signature bytes (at .signature)", i)
+		} else if signature.SignatureBytes != nil || len(signature.SignatureBytes) > 0 {
+			return fmt.Errorf("SignMessage signature %d already has signature bytes", i)
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
 		// TODO: dedup with alg in m.SignatureDigest()?
-		alg, err := getAlg(signature.headers)
+		alg, err := getAlg(signature.Headers)
 		if err != nil {
 			return err
 		}
@@ -170,13 +170,13 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 		// 3.  Call the signature creation algorithm passing in K (the key to
 		//     sign with), alg (the algorithm to sign with), and ToBeSigned (the
 		//     value to sign).
-		signature, err := signer.Sign(rand, digest, opts)
+		signatureBytes, err := signer.Sign(rand, digest, opts)
 		if err != nil {
 			return err
 		}
 
 		// 4.  Place the resulting signature value in the 'signature' field of the array.
-		m.signatures[i].signature = signature
+		m.Signatures[i].SignatureBytes = signatureBytes
 	}
 	return nil
 }
@@ -184,23 +184,23 @@ func (m *SignMessage) Sign(rand io.Reader, external []byte, opts SignOpts) (err 
 // Verify verifies all signatures on the SignMessage returning nil for
 // success or an error
 func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
-	if m.signatures == nil || len(m.signatures) < 1 {
+	if m.Signatures == nil || len(m.Signatures) < 1 {
 		return nil // Nothing to check
 	}
 	// TODO: take a func for a signature kid that returns a key or not?
 
-	for i, signature := range m.signatures {
-		if signature.headers == nil {
+	for i, signature := range m.Signatures {
+		if signature.Headers == nil {
 			return NilSigHeaderErr
-		} else if signature.headers.protected == nil {
+		} else if signature.Headers.Protected == nil {
 			return NilSigProtectedHeadersErr
-		} else if signature.signature == nil || len(signature.signature) < 1 {
-			return fmt.Errorf("SignMessage signature %d missing signature bytes (at .signature) to verify", i)
+		} else if signature.SignatureBytes == nil || len(signature.SignatureBytes) < 1 {
+			return fmt.Errorf("SignMessage signature %d missing signature bytes to verify", i)
 		}
 		// TODO: check if provided privateKey verify alg, bitsize, and supported key_ops in protected
 
 		// TODO: dedup with alg in m.SignatureDigest()?
-		alg, err := getAlg(signature.headers)
+		alg, err := getAlg(signature.Headers)
 		if err != nil {
 			return err
 		}
@@ -224,7 +224,7 @@ func (m *SignMessage) Verify(external []byte, opts *VerifyOpts) (err error) {
 		// 3.  Call the signature creation algorithm passing in K (the key to
 		//     sign with), alg (the algorithm to sign with), and ToBeSigned (the
 		//     value to sign).
-		err = verifier.Verify(digest, signature.signature)
+		err = verifier.Verify(digest, signature.SignatureBytes)
 		if err != nil {
 			return err
 		}

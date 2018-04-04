@@ -51,48 +51,48 @@ func TestSignErrors(t *testing.T) {
 	}
 
 	sig := NewSignature()
-	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
-	sig.headers.protected[kidTag] = 1
+	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.Headers.Protected[kidTag] = 1
 
-	msg.signatures = []Signature{}
+	msg.Signatures = []Signature{}
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(NoSignaturesErr, err)
 
-	msg.signatures = nil
+	msg.Signatures = nil
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(NilSignaturesErr, err)
 
 	// check that it creates the signatures array from nil
 	msg.AddSignature(sig)
-	assert.Equal(len(msg.signatures), 1)
+	assert.Equal(len(msg.Signatures), 1)
 
-	msg.signatures[0].headers = nil
+	msg.Signatures[0].Headers = nil
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(NilSigHeaderErr, err)
 
-	msg.signatures = nil
+	msg.Signatures = nil
 	msg.AddSignature(sig)
-	msg.signatures[0].headers.protected = nil
+	msg.Signatures[0].Headers.Protected = nil
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(NilSigProtectedHeadersErr, err)
 
-	msg.signatures = nil
-	sig.headers.protected = map[interface{}]interface{}{}
-	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
-	sig.headers.protected[kidTag] = 1
-	sig.signature = []byte("already signed")
+	msg.Signatures = nil
+	sig.Headers.Protected = map[interface{}]interface{}{}
+	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.Headers.Protected[kidTag] = 1
+	sig.SignatureBytes = []byte("already signed")
 
 	msg.AddSignature(sig)
-	assert.Equal(len(msg.signatures), 1)
-	assert.NotNil(msg.signatures[0].headers)
+	assert.Equal(len(msg.Signatures), 1)
+	assert.NotNil(msg.Signatures[0].Headers)
 	err = msg.Sign(randReader, []byte(""), opts)
-	assert.Equal(errors.New("SignMessage signature 0 already has signature bytes (at .signature)"), err)
+	assert.Equal(errors.New("SignMessage signature 0 already has signature bytes"), err)
 
-	msg.signatures[0].signature = nil
+	msg.Signatures[0].SignatureBytes = nil
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(UnavailableHashFuncErr, err)
 
-	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
+	msg.Signatures[0].Headers.Protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("Error finding a Signer for signature 0"), err)
 
@@ -104,11 +104,11 @@ func TestSignErrors(t *testing.T) {
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(UnknownPrivateKeyTypeErr, err)
 
-	msg.signatures[0].headers.protected[algTag] = -9000
+	msg.Signatures[0].Headers.Protected[algTag] = -9000
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(errors.New("Algorithm with value -9000 not found"), err)
 
-	delete(msg.signatures[0].headers.protected, algTag)
+	delete(msg.Signatures[0].Headers.Protected, algTag)
 	err = msg.Sign(randReader, []byte(""), opts)
 	assert.Equal(AlgNotFoundErr, err)
 }
@@ -129,8 +129,8 @@ func TestVerifyErrors(t *testing.T) {
 	}
 
 	sig := NewSignature()
-	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
-	sig.headers.protected[kidTag] = 1
+	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.Headers.Protected[kidTag] = 1
 
 	signer, err := NewSigner(&ecdsaPrivateKey)
 	assert.Nil(err, "Error creating signer")
@@ -145,31 +145,31 @@ func TestVerifyErrors(t *testing.T) {
 	}
 	payload := []byte("")
 
-	msg.signatures = []Signature{}
+	msg.Signatures = []Signature{}
 	assert.Nil(msg.Verify(payload, &opts))
 
-	msg.signatures = nil
+	msg.Signatures = nil
 	assert.Nil(msg.Verify(payload, &opts))
 
 	msg.AddSignature(sig)
-	msg.signatures[0].headers.protected = nil
+	msg.Signatures[0].Headers.Protected = nil
 	assert.Equal(NilSigProtectedHeadersErr, msg.Verify(payload, &opts))
 
-	msg.signatures[0].headers = nil
+	msg.Signatures[0].Headers = nil
 	assert.Equal(NilSigHeaderErr, msg.Verify(payload, &opts))
 
 	sig = NewSignature()
-	sig.headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
-	sig.headers.protected[kidTag] = 1
-	msg.signatures[0] = *sig
-	assert.Equal(errors.New("SignMessage signature 0 missing signature bytes (at .signature) to verify"), msg.Verify(payload, &opts))
+	sig.Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	sig.Headers.Protected[kidTag] = 1
+	msg.Signatures[0] = *sig
+	assert.Equal(errors.New("SignMessage signature 0 missing signature bytes to verify"), msg.Verify(payload, &opts))
 
-	msg.signatures[0].headers.protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
-	msg.signatures[0].headers.protected[kidTag] = 1
-	msg.signatures[0].signature = []byte("already signed")
+	msg.Signatures[0].Headers.Protected[algTag] = -41 // RSAES-OAEP w/ SHA-256 from [RFC8230]
+	msg.Signatures[0].Headers.Protected[kidTag] = 1
+	msg.Signatures[0].SignatureBytes = []byte("already signed")
 	assert.Equal(UnavailableHashFuncErr, msg.Verify(payload, &opts))
 
-	msg.signatures[0].headers.protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
+	msg.Signatures[0].Headers.Protected[algTag] = -7 // ECDSA w/ SHA-256 from [RFC8152]
 	assert.Equal(errors.New("Error finding a Verifier for signature 0"), msg.Verify(payload, &VerifyOpts{
 		GetVerifier: func(index int, signature Signature) (Verifier, error) {
 			return *verifier, NoVerifierFoundErr

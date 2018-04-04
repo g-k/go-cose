@@ -35,16 +35,16 @@ var CBORTestCases = []CBORTestCase{
 	{
 		"empty headers",
 		Headers{
-			protected:   map[interface{}]interface{}{},
-			unprotected: map[interface{}]interface{}{},
+			Protected:   map[interface{}]interface{}{},
+			Unprotected: map[interface{}]interface{}{},
 		},
 		[]byte("\x40"),
 	},
 	{
 		"alg in protected header",
 		Headers{
-			protected:   map[interface{}]interface{}{"alg": "ES256"},
-			unprotected: map[interface{}]interface{}{},
+			Protected:   map[interface{}]interface{}{"alg": "ES256"},
+			Unprotected: map[interface{}]interface{}{},
 		},
 		// 0x43 for bytes h'A10126'
 		// decoding h'A10126' gives:
@@ -56,8 +56,8 @@ var CBORTestCases = []CBORTestCase{
 	{
 		"alg in unprotected header",
 		Headers{
-			protected:   map[interface{}]interface{}{},
-			unprotected: map[interface{}]interface{}{"alg": "ES256"},
+			Protected:   map[interface{}]interface{}{},
+			Unprotected: map[interface{}]interface{}{"alg": "ES256"},
 		},
 		[]byte("\x40"),
 	},
@@ -65,10 +65,10 @@ var CBORTestCases = []CBORTestCase{
 		"duplicate key across protected and unprotected maps",
 		// TODO: throw a duplicate key error?
 		Headers{
-			protected: map[interface{}]interface{}{
+			Protected: map[interface{}]interface{}{
 				"alg": "ES256",
 			},
-			unprotected: map[interface{}]interface{}{
+			Unprotected: map[interface{}]interface{}{
 				"alg": "PS256",
 			},
 		},
@@ -79,18 +79,18 @@ var CBORTestCases = []CBORTestCase{
 	// 	"duplicate key in protected",
 	// 	[]byte(""),
 	// 	Headers{
-	// 		protected: map[interface{}]interface{}{
+	// 		Protected: map[interface{}]interface{}{
 	// 			"alg": "ES256",
 	// 			"alg": "PS256",
 	// 		},
-	// 		unprotected: map[interface{}]interface{}{},
+	// 		Unprotected: map[interface{}]interface{}{},
 	// 	},
 	// },
 	// {
 	// 	"duplicate key in unprotected",
 	// 	Headers{
-	// 		protected: map[interface{}]interface{}{},
-	// 		unprotected: map[interface{}]interface{}{
+	// 		Protected: map[interface{}]interface{}{},
+	// 		Unprotected: map[interface{}]interface{}{
 	// 			"alg": "ES256",
 	// 			"alg": "PS256",
 	// 		},

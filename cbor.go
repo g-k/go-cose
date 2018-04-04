@@ -69,19 +69,19 @@ func (x Ext) ConvertExt(v interface{}) interface{} {
 		panic(fmt.Sprintf("unsupported format expecting to encode SignMessage; got %T", v))
 	}
 
-	sigs := make([]interface{}, len(message.signatures))
-	for i, s := range message.signatures {
+	sigs := make([]interface{}, len(message.Signatures))
+	for i, s := range message.Signatures {
 		sigs[i] = []interface{}{
-			s.headers.EncodeProtected(),
-			s.headers.EncodeUnprotected(),
-			s.signature,
+			s.Headers.EncodeProtected(),
+			s.Headers.EncodeUnprotected(),
+			s.SignatureBytes,
 		}
 	}
 
 	return []interface{}{
-		message.headers.EncodeProtected(),
-		message.headers.EncodeUnprotected(),
-		[]byte(message.payload),
+		message.Headers.EncodeProtected(),
+		message.Headers.EncodeUnprotected(),
+		[]byte(message.Payload),
 		sigs,
 	}
 }
@@ -137,8 +137,8 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 	}
 
 	var msgHeaders = &Headers{
-		protected:   map[interface{}]interface{}{},
-		unprotected: map[interface{}]interface{}{},
+		Protected:   map[interface{}]interface{}{},
+		Unprotected: map[interface{}]interface{}{},
 	}
 	err := msgHeaders.Decode(src[0:2])
 	if err != nil {
@@ -152,7 +152,7 @@ func (x Ext) UpdateExt(dest interface{}, v interface{}) {
 
 	var m = NewSignMessage(payload)
 	var message = &m
-	message.headers = msgHeaders
+	message.Headers = msgHeaders
 
 	var sigs, sok = src[3].([]interface{})
 	if !sok {

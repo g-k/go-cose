@@ -39,7 +39,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert.Nil(err, fmt.Sprintf("%s: Error creating verifier", example.Title))
 
 	// Test Verify - signatures CBOR decoded from example
-	assert.NotNil(message.signatures[0].signature)
+	assert.NotNil(message.Signatures[0].SignatureBytes)
 	err = message.Verify(external, &VerifyOpts{
 		GetVerifier: func(index int, signature Signature) (Verifier, error) {
 			return *verifier, nil
@@ -58,7 +58,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	randReader := rand.New(rand.NewSource(int64(binary.BigEndian.Uint64([]byte(example.Input.RngDescription)))))
 
 	// clear the signature
-	message.signatures[0].signature = nil
+	message.Signatures[0].SignatureBytes = nil
 
 	err = message.Sign(randReader, external, SignOpts{
 		HashFunc: alg.HashFunc,
@@ -69,7 +69,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 
 	// check intermediate
-	ToBeSigned, err := message.SigStructure(external, &message.signatures[0])
+	ToBeSigned, err := message.SigStructure(external, &message.Signatures[0])
 	assert.Nil(err, fmt.Sprintf("%s: signing failed with err %s", example.Title, err))
 	assert.Equal(example.Intermediates.Signers[0].ToBeSignHex,
 		strings.ToUpper(hex.EncodeToString(ToBeSigned)),
@@ -83,7 +83,7 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	digest, err := hashSigStructure(ToBeSigned, alg.HashFunc)
 	assert.Nil(err, fmt.Sprintf("%s: round trip failed to hash signature %s", example.Title, err))
 
-	err = verifier.Verify(digest, message.signatures[0].signature)
+	err = verifier.Verify(digest, message.Signatures[0].SignatureBytes)
 	assert.Nil(err, fmt.Sprintf("%s: round trip signature verification failed with err %s", example.Title, err))
 }
 

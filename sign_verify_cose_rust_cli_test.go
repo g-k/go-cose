@@ -25,11 +25,11 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 	var payload = []byte(testCase.SignPayload)
 	message := NewSignMessage(payload)
 	msgHeaders := &Headers{
-		protected:   map[interface{}]interface{}{},
-		unprotected: map[interface{}]interface{}{},
+		Protected:   map[interface{}]interface{}{},
+		Unprotected: map[interface{}]interface{}{},
 	}
-	msgHeaders.protected[kidTag] = testCase.Certs
-	message.headers = msgHeaders
+	msgHeaders.Protected[kidTag] = testCase.Certs
+	message.Headers = msgHeaders
 
 	for _, param := range testCase.Params {
 		key, err := x509.ParsePKCS8PrivateKey(param.pkcs8)
@@ -41,13 +41,13 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 		verifiers = append(verifiers, *signer.Verifier(param.algorithm))
 
 		sig := NewSignature()
-		sig.headers.protected[algTag] = param.algorithm.Value
-		sig.headers.protected[kidTag] = param.certificate
+		sig.Headers.Protected[algTag] = param.algorithm.Value
+		sig.Headers.Protected[kidTag] = param.certificate
 
 		message.AddSignature(sig)
 	}
-	assert.True(len(message.signatures) > 0)
-	assert.Equal(len(message.signatures), len(signers))
+	assert.True(len(message.Signatures) > 0)
+	assert.Equal(len(message.Signatures), len(signers))
 
 	var external []byte
 
@@ -60,14 +60,14 @@ func RustCoseVerifiesGoCoseSignatures(t *testing.T, testCase RustTestCase) {
 
 	if testCase.ModifySignature {
 		// tamper with the COSE signature.
-		sig1 := message.signatures[0].signature
+		sig1 := message.Signatures[0].SignatureBytes
 		sig1[len(sig1)-5] ^= sig1[len(sig1)-5]
 	}
 	if testCase.ModifyPayload {
-		message.payload[0] ^= message.payload[0]
+		message.Payload[0] ^= message.Payload[0]
 	}
 
-	message.payload = nil
+	message.Payload = nil
 
 	// Verify our signature (round trip)
 	err = message.Verify(external, &VerifyOpts{
