@@ -3,6 +3,8 @@ package cose
 import (
 	"fmt"
 	"log"
+	"math/big"
+	"encoding/base64"
 )
 
 // Headers represents "two buckets of information that are not
@@ -294,4 +296,17 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 		}
 	}
 	return nil, AlgNotFoundErr
+}
+
+
+// FromBase64Int decodes a base64-encoded string into a big.Int or panics
+//
+// from https://github.com/square/go-jose/blob/789a4c4bd4c118f7564954f441b29c153ccd6a96/utils_test.go#L45
+// Apache License 2.0
+func FromBase64Int(data string) *big.Int {
+	val, err := base64.RawURLEncoding.DecodeString(data)
+	if err != nil {
+		panic("Invalid test data")
+	}
+	return new(big.Int).SetBytes(val)
 }
