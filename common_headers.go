@@ -1,10 +1,10 @@
 package cose
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"math/big"
-	"encoding/base64"
 )
 
 // Headers represents "two buckets of information that are not
@@ -297,7 +297,6 @@ func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
 	}
 	return nil, AlgNotFoundErr
 }
-
 
 // FromBase64Int decodes a base64-encoded string into a big.Int or panics
 //

@@ -15,7 +15,7 @@ import (
 //
 // https://tools.ietf.org/html/rfc8152#section-4.1
 type Signature struct {
-	Headers   *Headers
+	Headers        *Headers
 	SignatureBytes []byte
 }
 

@@ -119,7 +119,7 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 func (s *Signer) Verifier(alg *COSEAlgorithm) (verifier *Verifier) {
 	return &Verifier{
 		publicKey: s.Public(),
-		alg: alg,
+		alg:       alg,
 	}
 }
 
