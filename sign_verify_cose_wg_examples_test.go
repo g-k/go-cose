@@ -36,7 +36,6 @@ func WGExampleSignsAndVerifies(t *testing.T, example WGExample) {
 	assert.Nil(err, fmt.Sprintf("%s: Error creating signer %s", example.Title, err))
 
 	verifier := signer.Verifier(alg)
-	assert.Nil(err, fmt.Sprintf("%s: Error creating verifier", example.Title))
 
 	// Test Verify - signatures CBOR decoded from example
 	assert.NotNil(message.Signatures[0].SignatureBytes)
