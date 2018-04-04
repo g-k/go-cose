@@ -42,5 +42,9 @@ godep:
 goveralls:
 	go get -u github.com/mattn/goveralls
 
-ci: godep golint goveralls install coverage lint vet
+smoketest-examples:
+	go run example/sign.go
+	go run example/verify.go
+
+ci: godep golint goveralls install coverage smoketest-examples lint vet
 	goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $(COVERALLS_TOKEN)
