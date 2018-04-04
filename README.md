@@ -19,18 +19,84 @@ go get -u go.mozilla.org/cose
 
 ### Signing a message
 
+From [example/sign.go](example/sign.go):
+
 ```golang
-// create a signer
+...
+	// create a signer
+	signer, err := cose.NewSigner(&ecdsaPrivateKey)
+	if err != nil {
+		panic(fmt.Sprintf(fmt.Sprintf("Error creating signer %s", err)))
+	}
 
+	// create a signature
+	sig := cose.NewSignature()
+	sig.Headers.Unprotected["kid"] = 1
+	sig.Headers.Protected["alg"] = "ES256"
 
+	// create a message
+	payload := []byte("payload to sign")
+	external := []byte("") // optional external data see https://tools.ietf.org/html/rfc8152#section-4.3
+
+	msg := cose.NewSignMessage(payload) // can update via .Payload later too
+	msg.AddSignature(sig)
+
+	randReader := rand.New(rand.NewSource(time.Now().UnixNano()))
+	err = msg.Sign(randReader, external, cose.SignOpts{
+		HashFunc: crypto.SHA256,
+		GetSigner: func(index int, signature cose.Signature) (cose.Signer, error) {
+			if signature.Headers.Unprotected["kid"] == 1 || signature.Headers.Unprotected[cose.GetCommonHeaderTagOrPanic("kid")] == 1 {
+				return *signer, nil
+			} else {
+				return *signer, cose.NoSignerFoundErr
+			}
+		},
+	})
+	if err == nil {
+		fmt.Println(fmt.Sprintf("Message signature (ES256): %x", msg.Signatures[0].SignatureBytes))
+	} else {
+		fmt.Println(fmt.Sprintf("Error signing the message %+v", err))
+	}
+...
+```
+
+To run the full example (your signature will vary):
+
+```console
+$ go run example/sign.go
+Message signature (ES256): 043685f99421f9e80c7c3c50d0fc8266161d3d614aaa3b63d2cdf581713fca62bb5d2e34d2352dbe41424b31d0b4a11d6b2d4764c18e2af04f4520fbe494d51c
 ```
 
 ### Verifying a message
 
+Continuing from the signer example in [example/verify.go](example/verify.go):
+
 ```golang
-// create a verifier
+...
+	// derive a verifier from out signer's public key
+	verifier := signer.Verifier(cose.GetAlgByNameOrPanic("ES256"))
 
+	// Verify
+	err = msg.Verify(external, &cose.VerifyOpts{
+		GetVerifier: func(index int, signature cose.Signature) (cose.Verifier, error) {
+			// or return cose.NoVerifierFoundErr
+			return *verifier, nil
+		},
+	})
+	if err == nil {
+		fmt.Println("Message signature verified")
+	} else {
+		fmt.Println(fmt.Sprintf("Error verifying the message %+v", err))
+	}
+...
+```
 
+To run the full example (your signature will vary):
+
+```console
+$ go run example/verify.go
+Message signature (ES256): 9411dc5200c1cb67ccd76424ade09ce89c4a8d8d2b66f2bbf70edf63beb2dc3cbde83250773e659b635d3715442a1efaa6b0c030ee8a2523c3e37a22ddb055fa
+Message signature verified
 ```
 
 ## Development
