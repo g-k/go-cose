@@ -9,12 +9,23 @@ import (
 const (
 	// COSE Message CBOR tags from
 	// https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml#tags
+
+	// Encrypt0MessageCBORTag is the CBOR tag for an Encrypt0Message
 	Encrypt0MessageCBORTag = 16
+
+	// MAC0MessageCBORTag is the CBOR tag for a MAC0Message
 	MAC0MessageCBORTag     = 17
+
+	// Sign1MessageCBORTag is the CBOR tag for a Sign1Message
 	Sign1MessageCBORTag    = 18
 
+	// EncryptMessageCBORTag is the CBOR tag for an EncryptMessage
 	EncryptMessageCBORTag = 96
+
+	// MACMessageCBORTag is the CBOR tag for a MACMessage
 	MACMessageCBORTag     = 97
+
+	// SignMessageCBORTag is the CBOR tag for a SignMessage
 	SignMessageCBORTag    = 98
 )
 
