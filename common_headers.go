@@ -186,9 +186,9 @@ func GetCommonHeaderLabel(tag int) (label string, err error) {
 	}
 }
 
-// GetAlgByName returns a COSEAlgorithm for an IANA name
-func GetAlgByName(name string) (alg *COSEAlgorithm, err error) {
-	for _, alg := range COSEAlgorithms {
+// GetAlgByName returns a Algorithm for an IANA name
+func GetAlgByName(name string) (alg *Algorithm, err error) {
+	for _, alg := range Algorithms {
 		if alg.Name == name {
 			return &alg, nil
 		}
@@ -196,8 +196,8 @@ func GetAlgByName(name string) (alg *COSEAlgorithm, err error) {
 	return nil, fmt.Errorf("Algorithm named %s not found", name)
 }
 
-// GetAlgByNameOrPanic returns a COSEAlgorithm for an IANA name and panics otherwise
-func GetAlgByNameOrPanic(name string) (alg *COSEAlgorithm) {
+// GetAlgByNameOrPanic returns a Algorithm for an IANA name and panics otherwise
+func GetAlgByNameOrPanic(name string) (alg *Algorithm) {
 	alg, err := GetAlgByName(name)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to get algorithm named %s", name))
@@ -205,9 +205,9 @@ func GetAlgByNameOrPanic(name string) (alg *COSEAlgorithm) {
 	return alg
 }
 
-// GetAlgByValue returns a COSEAlgorithm for an IANA value
-func GetAlgByValue(value int64) (alg *COSEAlgorithm, err error) {
-	for _, alg := range COSEAlgorithms {
+// GetAlgByValue returns a Algorithm for an IANA value
+func GetAlgByValue(value int64) (alg *Algorithm, err error) {
+	for _, alg := range Algorithms {
 		if int64(alg.Value) == value {
 			return &alg, nil
 		}
@@ -269,7 +269,7 @@ func DecompressHeaders(headers map[interface{}]interface{}) (decompressed map[in
 }
 
 // getAlg returns the alg by label, int, or uint64 tag (as from Unmarshal)
-func getAlg(h *Headers) (alg *COSEAlgorithm, err error) {
+func getAlg(h *Headers) (alg *Algorithm, err error) {
 	if tmp, ok := h.Protected["alg"]; ok {
 		if algName, ok := tmp.(string); ok {
 			alg, err = GetAlgByName(algName)

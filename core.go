@@ -115,18 +115,18 @@ func (s *Signer) Sign(rand io.Reader, digest []byte, opts SignOpts) (signature [
 }
 
 // Verifier returns a Verifier using the Signer's public key and
-// provided COSEAlgorithm
-func (s *Signer) Verifier(alg *COSEAlgorithm) (verifier *Verifier) {
+// provided Algorithm
+func (s *Signer) Verifier(alg *Algorithm) (verifier *Verifier) {
 	return &Verifier{
 		publicKey: s.Public(),
 		alg:       alg,
 	}
 }
 
-// Verifier holds a PublicKey and COSEAlgorithm to verify signatures
+// Verifier holds a PublicKey and Algorithm to verify signatures
 type Verifier struct {
 	publicKey crypto.PublicKey
-	alg       *COSEAlgorithm
+	alg       *Algorithm
 }
 
 // VerifyOpts are options to the Verifier.Verify requires a function

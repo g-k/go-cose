@@ -631,7 +631,7 @@ var XPI_PAYLOAD = [...]byte{
 
 type COSERustSignatureParameters struct {
 	certificate []byte
-	algorithm   *COSEAlgorithm
+	algorithm   *Algorithm
 	pkcs8       []byte
 }
 
@@ -658,7 +658,7 @@ var RSA_PARAMS = COSERustSignatureParameters{
 
 type RustTestCase struct {
 	Title         string         // test fn name in cose-rust/examples/sign_verify/main.rs
-	SignAlg       *COSEAlgorithm // COSE signing algorithm to use
+	SignAlg       *Algorithm // COSE signing algorithm to use
 	SignPayload   []byte         // payload to sign
 	VerifyPayload []byte         // payload to verify (defaults to SignPayload)
 	Certs         [][]byte
